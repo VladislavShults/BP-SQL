@@ -8,11 +8,15 @@ import {
 import { QueryUserDto } from './models/query-user.dto';
 import { mapUserDBTypeToViewType } from '../helpers/mapUserDBTypeToViewType';
 import { InfoAboutMeType } from '../../../public-API/auth/types/info-about-me-type';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { mapUserSQLTypeToViewType } from '../helpers/mapUserSQLTypeToViewType';
 
 @Injectable()
 export class UsersQueryRepository {
   constructor(
     @Inject('USER_MODEL') private readonly userModel: Model<UserDBType>,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async getUserByIdViewType(userId: string): Promise<ViewUserType | null> {
@@ -127,5 +131,22 @@ export class UsersQueryRepository {
     const user = await this.userModel.findOne({ login: login }).lean();
     if (!user) return null;
     return user;
+  }
+
+  async getUserByIdViewSQLType(userId: number): Promise<ViewUserType | null> {
+    const userSQLType = await this.dataSource.query(
+      `
+    SELECT *
+FROM public."BanInfo" B
+JOIN public."Users" U
+ON B."UserId" = U."UserId"
+WHERE B."UserId" = $1
+    `,
+      [userId],
+    );
+
+    if (!userSQLType) return null;
+
+    return mapUserSQLTypeToViewType(userSQLType[0]);
   }
 }

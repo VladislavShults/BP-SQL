@@ -37,3 +37,25 @@ export type ViewUsersTypeWithPagination = {
   totalCount: number;
   items: ViewUserType[];
 };
+
+export type EmailConfirmationType = {
+  confirmationCode: string;
+  expirationDate: Date;
+  isConfirmed: boolean;
+  userId: number;
+};
+
+export type UserForTypeOrmType = {
+  login: string;
+  email: string;
+  createdAt: Date;
+  passwordHash: string;
+};
+
+export type UserSQLType = {
+  UserId: number;
+  Login: string;
+  Email: string;
+  CreatedAt: Date;
+  PasswordHash: string;
+};

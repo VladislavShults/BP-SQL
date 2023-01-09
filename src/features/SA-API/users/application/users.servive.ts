@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { addHours } from 'date-fns';
 import { UsersRepository } from '../infrastructure/users.repository';
-import { ObjectId } from 'mongodb';
 import { CreateUserDto } from '../api/models/create-user.dto';
 import { v4 as uuidv4 } from 'uuid';
-import { UserDBType } from '../types/users.types';
+import {
+  EmailConfirmationType,
+  UserDBType,
+  UserForTypeOrmType,
+} from '../types/users.types';
 import { BanUserDto } from '../api/models/ban-user.dto';
 import { AuthService } from '../../../public-API/auth/application/auth.service';
 import { DevicesService } from '../../../public-API/devices/application/devices.service';
@@ -23,26 +26,30 @@ export class UsersService {
     private readonly likesService: LikesService,
   ) {}
 
-  async createUser(inputModel: CreateUserDto): Promise<ObjectId> {
+  async createUser(inputModel: CreateUserDto): Promise<number> {
     const hash = await this.authService.generateHash(inputModel.password);
 
-    const user: Omit<UserDBType, '_id'> = {
+    const user: UserForTypeOrmType = {
       login: inputModel.login,
       email: inputModel.email,
       createdAt: new Date(),
       passwordHash: hash,
-      emailConfirmation: {
-        confirmationCode: uuidv4(),
-        expirationDate: addHours(new Date(), 5),
-        isConfirmed: false,
-      },
-      banInfo: {
-        isBanned: false,
-        banDate: null,
-        banReason: null,
-      },
     };
-    return await this.usersRepository.createUser(user);
+
+    const userId = await this.usersRepository.createUser(user);
+
+    const emailConfirmation: EmailConfirmationType = {
+      confirmationCode: uuidv4(),
+      expirationDate: addHours(new Date(), 5),
+      isConfirmed: false,
+      userId,
+    };
+
+    await this.usersRepository.saveEmailConfirmation(emailConfirmation);
+
+    await this.usersRepository.createBanInfoForUser(userId);
+
+    return userId;
   }
 
   async deleteUserById(userId: string): Promise<boolean> {
