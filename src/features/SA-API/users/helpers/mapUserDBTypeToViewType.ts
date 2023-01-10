@@ -1,13 +1,15 @@
-import { UserDBType, ViewUserType } from '../types/users.types';
+import { UsersJoinBanInfoType, ViewUserType } from '../types/users.types';
 
-export const mapUserDBTypeToViewType = (user: UserDBType): ViewUserType => ({
-  id: user._id.toString(),
+export const mapUserDBTypeToViewType = (
+  user: UsersJoinBanInfoType,
+): ViewUserType => ({
+  id: user.id.toString(),
   login: user.login,
   email: user.email,
   createdAt: user.createdAt,
   banInfo: {
-    isBanned: user.banInfo.isBanned,
-    banDate: user.banInfo.banDate,
-    banReason: user.banInfo.banReason,
+    isBanned: user.isBanned,
+    banDate: user.banDate,
+    banReason: user.banReason,
   },
 });

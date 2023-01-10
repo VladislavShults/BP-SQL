@@ -16,14 +16,26 @@ export class UsersRepository {
   ) {}
 
   async deleteUserById(userId: string): Promise<boolean> {
-    const result = await this.userModel.deleteOne({ _id: userId });
-    return result.deletedCount > 0;
+    await this.dataSource.query(
+      `
+    UPDATE public."Users" u
+    SET "IsDeleted"=true
+    WHERE u."UserId" = $1;`,
+      [userId],
+    );
+    return true;
   }
 
   async getUser(userId: string) {
-    const user = await this.userModel.findById(userId);
-    if (!user) return null;
-    return user;
+    const user = await this.dataSource.query(
+      `
+    SELECT "UserId", "Login", "CreatedAt", "IsDeleted"
+    FROM public."Users" u
+    WHERE u."UserId" = $1`,
+      [userId],
+    );
+    if (user.length === 0) return null;
+    return user[0];
   }
 
   async updateUser(user): Promise<boolean> {
@@ -83,7 +95,7 @@ RETURNING "EmailConfirmationId";`,
         emailConfirmation.userId,
       ],
     );
-    return result[0].Id;
+    return result[0].EmailConfirmationId;
   }
 
   async createUser(user: UserForTypeOrmType): Promise<number> {
@@ -109,5 +121,18 @@ RETURNING "UserId";
       [false, userId],
     );
     return result[0].BanInfoId;
+  }
+
+  async banOrUnbanUser(
+    userId: string,
+    banInfo: { isBanned: boolean; banDate: Date; banReason: string },
+  ): Promise<void> {
+    await this.dataSource.query(
+      `
+    UPDATE public."BanInfo"
+    SET "IsBanned"= $1, "BanDate"= $2, "BanReason"= $3
+    WHERE "UserId" = $4;`,
+      [banInfo.isBanned, banInfo.banDate, banInfo.banReason, userId],
+    );
   }
 }

@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import {
   UserDBType,
+  UsersJoinBanInfoType,
   ViewUsersTypeWithPagination,
   ViewUserType,
 } from '../types/users.types';
@@ -19,11 +20,11 @@ export class UsersQueryRepository {
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
-  async getUserByIdViewType(userId: string): Promise<ViewUserType | null> {
-    const userDBType = await this.userModel.findById(userId);
-    if (!userDBType) return null;
-    return mapUserDBTypeToViewType(userDBType);
-  }
+  // async getUserByIdViewType(userId: string): Promise<ViewUserType | null> {
+  //   const userDBType = await this.userModel.findById(userId);
+  //   if (!userDBType) return null;
+  //   return mapUserDBTypeToViewType(userDBType);
+  // }
 
   async getUserByIdDBType(userId: string): Promise<UserDBType | null> {
     const userDBType = await this.userModel.findById(userId);
@@ -32,78 +33,123 @@ export class UsersQueryRepository {
   }
 
   async getUsers(query: QueryUserDto): Promise<ViewUsersTypeWithPagination> {
+    const banStatus: string = query.banStatus || 'all';
     const pageNumber: number = Number(query.pageNumber) || 1;
     const pageSize: number = Number(query.pageSize) || 10;
     const sortBy: string = query.sortBy || 'createdAt';
     const sortDirection: 'asc' | 'desc' = query.sortDirection || 'desc';
-    const searchLoginTerm: string | null = query.searchLoginTerm || null;
-    const searchEmailTerm: string | null = query.searchEmailTerm || null;
+    const searchLoginTerm: string | null = query.searchLoginTerm || '';
+    const searchEmailTerm: string | null = query.searchEmailTerm || '';
 
-    let itemsDBType: UserDBType[];
+    let itemsDBType: UsersJoinBanInfoType[];
     let pagesCount: number;
     let totalCount: number;
 
-    if (!searchEmailTerm && !searchLoginTerm) {
-      itemsDBType = await this.userModel
-        .find()
-        .skip((pageNumber - 1) * pageSize)
-        .limit(pageSize)
-        .sort([[sortBy, sortDirection]])
-        .lean();
+    if (banStatus === 'all') {
+      const queryUsers = `
+        SELECT u."UserId" as "id", u."Login" as "login", u."Email" as "email", 
+                u."CreatedAt" as "createdAt", u."IsDeleted" as "isDeleted",
+                b."IsBanned" as "isBanned", b."BanReason" as "banReason", b."BanDate" as "banDate"
+        FROM public."Users" u
+        JOIN public."BanInfo" b
+        ON u."UserId" = b."UserId"
+        WHERE LOWER ("Login") LIKE $1 AND "IsDeleted" = false
+        OR (LOWER ("Email") LIKE $2 AND "IsDeleted" = false)
+        ORDER BY ${'"' + sortBy + '"'} ${sortDirection}
+        LIMIT ${pageSize} OFFSET ${(pageNumber - 1) * pageSize};
+      `;
 
-      totalCount = await this.userModel.count({});
+      itemsDBType = await this.dataSource.query(queryUsers, [
+        '%' + searchLoginTerm + '%',
+        '%' + searchEmailTerm + '%',
+      ]);
+
+      const queryCount = `SELECT count(*)
+                        FROM public."Users" u
+                        JOIN public."BanInfo" b
+                        ON u."UserId" = b."UserId"
+                        WHERE LOWER ("Login") LIKE $1 AND "IsDeleted" = false
+                        OR (LOWER ("Email") LIKE $2 AND "IsDeleted" = false)`;
+
+      const totalCountArray = await this.dataSource.query(queryCount, [
+        '%' + searchLoginTerm + '%',
+        '%' + searchEmailTerm + '%',
+      ]);
+
+      totalCount = totalCountArray[0].count;
+
       pagesCount = Math.ceil(totalCount / pageSize);
     }
 
-    if (searchEmailTerm && !searchLoginTerm) {
-      itemsDBType = await this.userModel
-        .find({ email: { $regex: searchEmailTerm, $options: 'i' } })
-        .skip((pageNumber - 1) * pageSize)
-        .limit(pageSize)
-        .sort([[sortBy, sortDirection]])
-        .lean();
+    if (banStatus === 'banned') {
+      const queryUsers = `
+        SELECT u."UserId" as "id", u."Login" as "login", u."Email" as "email", 
+                u."CreatedAt" as "createdAt", u."IsDeleted" as "isDeleted",
+                b."IsBanned" as "isBanned", b."BanReason" as "banReason", b."BanDate" as "banDate"
+        FROM public."Users" u
+        JOIN public."BanInfo" b
+        ON u."UserId" = b."UserId"
+        WHERE LOWER ("Login") LIKE $1 AND "IsDeleted" = false AND "IsBanned" = true
+        OR (LOWER ("Email") LIKE $2 AND "IsDeleted" = false AND "IsBanned" = true)
+        ORDER BY ${'"' + sortBy + '"'} ${sortDirection}
+        LIMIT ${pageSize} OFFSET ${(pageNumber - 1) * pageSize};
+      `;
 
-      totalCount = await this.userModel.count({
-        email: { $regex: searchEmailTerm, $options: 'i' },
-      });
+      itemsDBType = await this.dataSource.query(queryUsers, [
+        '%' + searchLoginTerm + '%',
+        '%' + searchEmailTerm + '%',
+      ]);
+
+      const queryCount = `SELECT count(*)
+                        FROM public."Users" u
+                        JOIN public."BanInfo" b
+                        ON u."UserId" = b."UserId"
+                        WHERE LOWER ("Login") LIKE $1 AND "IsDeleted" = false AND "IsBanned" = true
+                        OR (LOWER ("Email") LIKE $2 AND "IsDeleted" = false AND "IsBanned" = true)`;
+
+      const totalCountArray = await this.dataSource.query(queryCount, [
+        '%' + searchLoginTerm + '%',
+        '%' + searchEmailTerm + '%',
+      ]);
+
+      totalCount = totalCountArray[0].count;
+
       pagesCount = Math.ceil(totalCount / pageSize);
     }
 
-    if (!searchEmailTerm && searchLoginTerm) {
-      itemsDBType = await this.userModel
-        .find({
-          login: { $regex: searchLoginTerm, $options: 'i' },
-        })
-        .skip((pageNumber - 1) * pageSize)
-        .limit(pageSize)
-        .sort([[sortBy, sortDirection]])
-        .lean();
+    if (banStatus === 'notBanned') {
+      const queryUsers = `
+        SELECT u."UserId" as "id", u."Login" as "login", u."Email" as "email", 
+                u."CreatedAt" as "createdAt", u."IsDeleted" as "isDeleted",
+                b."IsBanned" as "isBanned", b."BanReason" as "banReason", b."BanDate" as "banDate"
+        FROM public."Users" u
+        JOIN public."BanInfo" b
+        ON u."UserId" = b."UserId"
+        WHERE LOWER ("Login") LIKE $1 AND "IsDeleted" = false AND "IsBanned" = false
+        OR (LOWER ("Email") LIKE $2 AND "IsDeleted" = false AND "IsBanned" = false)
+        ORDER BY ${'"' + sortBy + '"'} ${sortDirection}
+        LIMIT ${pageSize} OFFSET ${(pageNumber - 1) * pageSize};
+      `;
 
-      totalCount = await this.userModel.count({
-        login: { $regex: searchLoginTerm, $options: 'i' },
-      });
-      pagesCount = Math.ceil(totalCount / pageSize);
-    }
+      itemsDBType = await this.dataSource.query(queryUsers, [
+        '%' + searchLoginTerm + '%',
+        '%' + searchEmailTerm + '%',
+      ]);
 
-    if (searchEmailTerm && searchLoginTerm) {
-      itemsDBType = await this.userModel
-        .find({
-          $or: [
-            { login: { $regex: searchLoginTerm, $options: 'i' } },
-            { email: { $regex: searchEmailTerm, $options: 'i' } },
-          ],
-        })
-        .skip((pageNumber - 1) * pageSize)
-        .limit(pageSize)
-        .sort([[sortBy, sortDirection]])
-        .lean();
+      const queryCount = `SELECT count(*)
+                        FROM public."Users" u
+                        JOIN public."BanInfo" b
+                        ON u."UserId" = b."UserId"
+                        WHERE LOWER ("Login") LIKE $1 AND "IsDeleted" = false AND "IsBanned" = false
+                        OR (LOWER ("Email") LIKE $2 AND "IsDeleted" = false AND "IsBanned" = false)`;
 
-      totalCount = await this.userModel.count({
-        $or: [
-          { login: { $regex: searchLoginTerm, $options: 'i' } },
-          { email: { $regex: searchEmailTerm, $options: 'i' } },
-        ],
-      });
+      const totalCountArray = await this.dataSource.query(queryCount, [
+        '%' + searchLoginTerm + '%',
+        '%' + searchEmailTerm + '%',
+      ]);
+
+      totalCount = totalCountArray[0].count;
+
       pagesCount = Math.ceil(totalCount / pageSize);
     }
 
@@ -137,10 +183,10 @@ export class UsersQueryRepository {
     const userSQLType = await this.dataSource.query(
       `
     SELECT *
-FROM public."BanInfo" B
-JOIN public."Users" U
-ON B."UserId" = U."UserId"
-WHERE B."UserId" = $1
+    FROM public."BanInfo" B
+    JOIN public."Users" U
+    ON B."UserId" = U."UserId"
+    WHERE B."UserId" = $1
     `,
       [userId],
     );

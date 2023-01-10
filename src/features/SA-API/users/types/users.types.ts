@@ -59,3 +59,13 @@ export type UserSQLType = {
   CreatedAt: Date;
   PasswordHash: string;
 };
+
+export type UsersJoinBanInfoType = {
+  id: number;
+  login: string;
+  email: string;
+  createdAt: Date;
+  isBanned: boolean;
+  banReason: string;
+  banDate: Date;
+};

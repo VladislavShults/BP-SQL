@@ -1,4 +1,5 @@
 export class QueryUserDto {
+  banStatus: 'all' | 'banned' | 'notBanned';
   pageNumber: string;
   pageSize: string;
   sortBy: string;

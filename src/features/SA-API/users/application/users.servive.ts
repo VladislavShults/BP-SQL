@@ -14,6 +14,7 @@ import { DevicesService } from '../../../public-API/devices/application/devices.
 import { CommentsService } from '../../../public-API/comments/application/comments.service';
 import { PostsService } from '../../../public-API/posts/application/posts.service';
 import { LikesService } from '../../../public-API/likes/application/likes.service';
+import { UsersQueryRepository } from '../api/users.query.repository';
 
 @Injectable()
 export class UsersService {
@@ -24,6 +25,7 @@ export class UsersService {
     private readonly commentsService: CommentsService,
     private readonly postsService: PostsService,
     private readonly likesService: LikesService,
+    private readonly usersQueryRepository: UsersQueryRepository,
   ) {}
 
   async createUser(inputModel: CreateUserDto): Promise<number> {
@@ -53,6 +55,10 @@ export class UsersService {
   }
 
   async deleteUserById(userId: string): Promise<boolean> {
+    const user = await this.usersRepository.getUser(userId);
+
+    if (!user || user.IsDeleted) return false;
+
     return await this.usersRepository.deleteUserById(userId);
   }
 
@@ -60,72 +66,70 @@ export class UsersService {
     userId: string,
     banModel: BanUserDto,
   ): Promise<boolean> {
-    if (userId.length !== 24) return false;
-    const user = await this.usersRepository.getUser(userId);
+    const user = await this.usersQueryRepository.getUserByIdViewSQLType(
+      Number(userId),
+    );
     if (!user) return false;
     if (banModel.isBanned && !user.banInfo.isBanned) {
-      user.banInfo.isBanned = true;
-      user.banInfo.banDate = new Date();
-      user.banInfo.banReason = banModel.banReason;
-      await this.usersRepository.updateUser(user);
+      const banInfo = {
+        isBanned: banModel.isBanned,
+        banDate: new Date(),
+        banReason: banModel.banReason,
+      };
 
-      await this.devicesService.terminateAllSessionByUserId(userId);
-      await this.postsService.banPosts(userId);
-      await this.likesService.banLikes(userId);
-      await this.commentsService.banComments(userId);
+      await this.usersRepository.banOrUnbanUser(userId, banInfo);
 
-      const bannedLikesForPosts =
-        await this.likesService.getBannedLikesForPostsByUser(userId);
-
-      for await (const element of bannedLikesForPosts) {
-        await this.postsService.correctLikeAndDislikeCountersBan(
-          element.idObject.toString(),
-          element.status,
-        );
-      }
-
-      const bannedLikesForComments =
-        await this.likesService.getBannedLikesForCommentsByUser(userId);
-
-      for await (const element of bannedLikesForComments) {
-        await this.commentsService.correctLikeAndDislikeCountersBan(
-          element.idObject.toString(),
-          element.status,
-        );
-      }
+      // await this.devicesService.terminateAllSessionByUserId(userId);
+      // await this.postsService.banPosts(userId);
+      // await this.likesService.banLikes(userId);
+      // await this.commentsService.banComments(userId);
+      // const bannedLikesForPosts =
+      //   await this.likesService.getBannedLikesForPostsByUser(userId);
+      // for await (const element of bannedLikesForPosts) {
+      //   await this.postsService.correctLikeAndDislikeCountersBan(
+      //     element.idObject.toString(),
+      //     element.status,
+      //   );
+      // }//
+      // const bannedLikesForComments =
+      //   await this.likesService.getBannedLikesForCommentsByUser(userId);
+      // for await (const element of bannedLikesForComments) {
+      //   await this.commentsService.correctLikeAndDislikeCountersBan(
+      //     element.idObject.toString(),
+      //     element.status,
+      //   );
+      // }
 
       return;
     }
     if (!banModel.isBanned && user.banInfo.isBanned) {
-      user.banInfo.isBanned = false;
-      user.banInfo.banDate = null;
-      user.banInfo.banReason = null;
-      await this.usersRepository.updateUser(user);
+      const banInfo = {
+        isBanned: banModel.isBanned,
+        banDate: null,
+        banReason: null,
+      };
+      await this.usersRepository.banOrUnbanUser(userId, banInfo);
 
-      const bannedLikesForPosts =
-        await this.likesService.getBannedLikesForPostsByUser(userId);
-
-      for (const element of bannedLikesForPosts) {
-        await this.postsService.correctLikeAndDislikeCountersUnban(
-          element.idObject.toString(),
-          element.status,
-        );
-      }
-
-      await this.postsService.unbanPosts(userId);
-
-      const bannedLikesForComments =
-        await this.likesService.getBannedLikesForCommentsByUser(userId);
-
-      for (const element of bannedLikesForComments) {
-        await this.commentsService.correctLikeAndDislikeCountersUnban(
-          element.idObject.toString(),
-          element.status,
-        );
-      }
-
-      await this.commentsService.unbanComments(userId);
-      await this.likesService.unbanLikes(userId);
+      // const bannedLikesForPosts =
+      //   await this.likesService.getBannedLikesForPostsByUser(userId);
+      //
+      // for (const element of bannedLikesForPosts) {
+      //   await this.postsService.correctLikeAndDislikeCountersUnban(
+      //     element.idObject.toString(),
+      //     element.status,
+      //   );
+      // }
+      // await this.postsService.unbanPosts(userId);
+      // const bannedLikesForComments =
+      //   await this.likesService.getBannedLikesForCommentsByUser(userId);
+      // for (const element of bannedLikesForComments) {
+      //   await this.commentsService.correctLikeAndDislikeCountersUnban(
+      //     element.idObject.toString(),
+      //     element.status,
+      //   );
+      // }
+      // await this.commentsService.unbanComments(userId);
+      // await this.likesService.unbanLikes(userId);
       return;
     }
   }
