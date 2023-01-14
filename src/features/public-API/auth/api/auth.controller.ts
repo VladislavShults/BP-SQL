@@ -29,7 +29,11 @@ import { JwtAuthGuard } from '../guards/JWT-auth.guard';
 import { InfoAboutMeType } from '../types/info-about-me-type';
 import { CheckDuplicatedLoginGuard } from '../guards/check-duplicated-login.guard';
 import { CheckUserAndHisPasswordInDB } from '../guards/checkUserAndHisPasswordInDB';
-import { UserDBType } from '../../../SA-API/users/types/users.types';
+import {
+  UserDBType,
+  UsersForCheckInDB,
+  UsersJoinEmailConfirmationType,
+} from '../../../SA-API/users/types/users.types';
 import { IpRestrictionGuard } from '../../../../infrastructure/ip-restriction/guards/ip-restriction.guard';
 import { Cookies } from '../decorators/cookies.decorator';
 import { CheckRefreshTokenInCookie } from '../guards/checkRefreshTokenInCookie';
@@ -52,13 +56,14 @@ export class AuthController {
     CheckDuplicatedLoginGuard,
   )
   async registration(@Body() inputModel: CreateUserDto): Promise<HttpStatus> {
-    const newUserObjectId = await this.usersService.createUser(inputModel);
-    const user = await this.usersQueryRepository.getUserByIdDBType(
-      newUserObjectId.toString(),
-    );
+    const newUserId = await this.usersService.createUser(inputModel);
+    const user =
+      await this.usersQueryRepository.getUserByIdJoinEmailConfirmationType(
+        newUserId,
+      );
     this.emailService.sendEmailRecoveryCode(
       inputModel.email,
-      user.emailConfirmation.confirmationCode,
+      user.confirmationCode,
     );
     return;
   }
@@ -74,14 +79,10 @@ export class AuthController {
       await this.authService.findAccountByConfirmationCode(inputModel.code);
     if (!userByConfirmationCode)
       throw new BadRequestException(createErrorMessage('code'));
-    if (userByConfirmationCode.emailConfirmation.isConfirmed)
+    if (userByConfirmationCode.isConfirmed)
       throw new BadRequestException(createErrorMessage('code'));
-    const verifiedAccount = await this.authService.confirmAccount(
-      userByConfirmationCode._id.toString(),
-    );
-    if (!verifiedAccount) {
-      throw new BadRequestException(createErrorMessage('code'));
-    }
+    await this.authService.confirmAccount(inputModel.code);
+
     return;
   }
 
@@ -91,21 +92,18 @@ export class AuthController {
   async registrationEmailResending(
     @Body() inputModel: RegistrationEmailResendingAuthDto,
   ): Promise<HttpStatus> {
-    const accountIsConfirmed = await this.authService.accountIsConfirmed(
-      inputModel.email,
-    );
+    const accountIsConfirmedOrMissing =
+      await this.authService.accountIsConfirmed(inputModel.email);
+
+    if (accountIsConfirmedOrMissing)
+      throw new BadRequestException(createErrorMessage('email'));
 
     const confirmationCode = await this.authService.refreshConfirmationCode(
       inputModel.email,
     );
 
-    if (confirmationCode && !accountIsConfirmed) {
-      this.emailService.sendEmailRecoveryCode(
-        inputModel.email,
-        confirmationCode,
-      );
-      return;
-    } else throw new BadRequestException(createErrorMessage('email'));
+    this.emailService.sendEmailRecoveryCode(inputModel.email, confirmationCode);
+    return;
   }
 
   @Post('login')
@@ -122,17 +120,14 @@ export class AuthController {
     if (req.cookies?.refreshToken) {
       await this.authService.deleteRefreshToken(req.cookies?.refreshToken);
     }
-    const user: UserDBType = req.user;
-
-    if (user.banInfo.isBanned)
-      throw new HttpException('Banned user', HttpStatus.UNAUTHORIZED);
+    const user: UsersForCheckInDB = req.user;
 
     const newAccessToken = await this.authService.createAccessToken(
-      user._id.toString(),
+      user.userId.toString(),
       '300000',
     );
     const newRefreshToken = await this.authService.createRefreshToken(
-      user._id.toString(),
+      user.userId.toString(),
       '300000',
     );
     await this.authService.saveDeviceInputInDB(
@@ -142,8 +137,8 @@ export class AuthController {
     );
     res
       .cookie('refreshToken', newRefreshToken, {
-        httpOnly: true,
-        secure: true,
+        httpOnly: false,
+        secure: false,
         maxAge: 300 * 1000,
       })
       .status(200)
@@ -189,8 +184,8 @@ export class AuthController {
     );
     res
       .cookie('refreshToken', newRefreshToken, {
-        httpOnly: true,
-        secure: true,
+        httpOnly: false,
+        secure: false,
         maxAge: 300 * 1000,
       })
       .status(200)
@@ -202,11 +197,12 @@ export class AuthController {
   @HttpCode(204)
   async passwordRecovery(@Body() inputModel: EmailAuthDto) {
     const email = inputModel.email;
-    const user = await this.usersService.findUserByEmail(email);
+    const user = await this.usersService.findUserByLoginOrEmail(email);
     if (!user) return;
+    await this.authService.refreshConfirmationCode(email);
     await this.emailService.sendEmailRecoveryCode(
       inputModel.email,
-      user.emailConfirmation.confirmationCode,
+      user.confirmationCode,
     );
     return;
   }
@@ -226,7 +222,7 @@ export class AuthController {
     );
     await this.authService.changePassword(
       hashNewPassword,
-      userByConfirmationCode._id.toString(),
+      userByConfirmationCode.userId.toString(),
     );
     return;
   }

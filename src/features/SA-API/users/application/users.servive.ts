@@ -66,7 +66,7 @@ export class UsersService {
     userId: string,
     banModel: BanUserDto,
   ): Promise<boolean> {
-    const user = await this.usersQueryRepository.getUserByIdViewSQLType(
+    const user = await this.usersQueryRepository.getUserByIdJoinBanInfoType(
       Number(userId),
     );
     if (!user) return false;
@@ -134,24 +134,9 @@ export class UsersService {
     }
   }
 
-  async findUserByEmail(email: string): Promise<UserDBType | null> {
-    return await this.usersRepository.findUserByEmail(email);
+  async findUserByLoginOrEmail(loginOrEmail: string) {
+    return this.usersRepository.findByLoginOrEmail(loginOrEmail);
   }
-
-  // async findUserByLoginOrEmail(loginOrEmail: string) {
-  //   let user: UserDBType | null = null;
-  //   const accountByEmail = await this.usersRepository.findUserByEmail(
-  //     loginOrEmail,
-  //   );
-  //   if (accountByEmail) {
-  //     user = accountByEmail;
-  //   }
-  //   const accountByLogin = await this.usersRepository.findByLogin(loginOrEmail);
-  //   if (accountByLogin) {
-  //     user = accountByLogin;
-  //   }
-  //   return user;
-  // }
 
   async findUserById(userId: string) {
     return this.usersRepository.getUser(userId);

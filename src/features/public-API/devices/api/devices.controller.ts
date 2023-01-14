@@ -70,7 +70,7 @@ export class SecurityController {
     if (!sessionByDeviceId)
       throw new HttpException('session not found', HttpStatus.NOT_FOUND);
 
-    if (sessionByDeviceId.userId !== userId.toString())
+    if (sessionByDeviceId.userId !== userId)
       throw new HttpException('', HttpStatus.FORBIDDEN);
     await this.devicesService.terminateSpecificDeviceSession(
       deviceId,

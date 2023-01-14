@@ -69,3 +69,20 @@ export type UsersJoinBanInfoType = {
   banReason: string;
   banDate: Date;
 };
+
+export type UsersJoinEmailConfirmationType = {
+  id: number;
+  login: string;
+  email: string;
+  isConfirmed: boolean;
+  confirmationCode: string;
+  expirationDate: Date;
+};
+
+export type UsersForCheckInDB = {
+  userId: number;
+  login: string;
+  email: string;
+  passwordHash: string;
+  isBanned: boolean;
+};

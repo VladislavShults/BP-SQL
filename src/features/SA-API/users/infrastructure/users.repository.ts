@@ -4,6 +4,7 @@ import {
   EmailConfirmationType,
   UserDBType,
   UserForTypeOrmType,
+  UsersJoinEmailConfirmationType,
 } from '../types/users.types';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -43,41 +44,85 @@ export class UsersRepository {
     return update.modifiedPaths.length > 0;
   }
 
-  async findAccountByConfirmationCode(
-    code: string,
-  ): Promise<UserDBType | null> {
-    const account = await this.userModel.findOne({
-      'emailConfirmation.confirmationCode': code,
-    });
-    if (!account) return null;
-    return account;
-  }
-
-  async confirmedAccount(accountId: string): Promise<boolean> {
-    const confirmAccount = await this.userModel.updateOne(
-      { _id: accountId },
-      { $set: { 'emailConfirmation.isConfirmed': true } },
-      {},
+  async findAccountByConfirmationCode(code: string) {
+    const account = await this.dataSource.query(
+      `
+    SELECT "ExpirationDate" as "expirationDate", "IsConfirmed" as "isConfirmed", "UserId" as "userId"
+    FROM public."EmailConfirmation"
+    WHERE "ConfirmationCode" = $1`,
+      [code],
     );
-    return confirmAccount.matchedCount === 1;
+
+    if (account.length === 0) return null;
+
+    return account[0];
   }
 
-  async getUserByEmail(email: string) {
-    return this.userModel.findOne({ email: email });
+  async confirmedAccount(code: string): Promise<boolean> {
+    await this.dataSource.query(
+      `
+    UPDATE public."EmailConfirmation"
+    SET "IsConfirmed"=true
+    WHERE "ConfirmationCode" = $1`,
+      [code],
+    );
+    return;
+  }
+
+  async checkUserByEmailInDB(email: string): Promise<number | null> {
+    const account = await this.dataSource.query(
+      `
+    SELECT u."UserId" as "id", u."Login" as "login", u."Email" as "email",
+           e."IsConfirmed" as "isConfirmed", e."ConfirmationCode" as "confirmationCode",
+           e."ExpirationDate" as "expirationDate"
+    FROM public."Users" u
+    JOIN public."EmailConfirmation" e
+    ON u."UserId" = e."UserId"
+    WHERE "IsDeleted" = false AND "Email" = $1
+    `,
+      [email],
+    );
+    if (account.length === 0) return null;
+    else return account[0].id;
   }
 
   async accountIsConfirmed(email: string): Promise<boolean> {
-    const account = await this.userModel.findOne({ email: email });
-    if (!account) return true;
-    return account.emailConfirmation.isConfirmed;
+    const account: UsersJoinEmailConfirmationType[] =
+      await this.dataSource.query(
+        `
+    SELECT u."UserId" as "id", u."Login" as "login", u."Email" as "email",
+           e."IsConfirmed" as "isConfirmed", e."ConfirmationCode" as "confirmationCode",
+           e."ExpirationDate" as "expirationDate"
+    FROM public."Users" u
+    JOIN public."EmailConfirmation" e
+    ON u."UserId" = e."UserId"
+    WHERE "IsDeleted" = false AND "Email" = $1`,
+        [email],
+      );
+
+    if (account.length === 0) return true;
+
+    return account[0].isConfirmed;
   }
 
-  async findByLogin(login: string): Promise<UserDBType | null> {
-    return this.userModel.findOne({ login: login });
-  }
+  async findByLoginOrEmail(
+    loginOrEmail: string,
+  ): Promise<UsersJoinEmailConfirmationType | null> {
+    const accountByLoginOrEmail = await this.dataSource.query(
+      `
+    SELECT u."UserId" as "id", u."Login" as "login", u."Email" as "email",
+           e."ConfirmationCode" as "confirmationCode"
+    FROM public."Users" u
+    JOIN public."EmailConfirmation" e
+    ON u."UserId" = e."UserId"
+    WHERE u."IsDeleted" = false AND u."Login" = $1
+    OR(u."IsDeleted" = false AND u."Email" = $1)`,
+      [loginOrEmail],
+    );
 
-  async findUserByEmail(email: string): Promise<UserDBType | null> {
-    return this.userModel.findOne({ email: email });
+    if (accountByLoginOrEmail.length === 0) return null;
+
+    return accountByLoginOrEmail[0];
   }
 
   async saveEmailConfirmation(
@@ -133,6 +178,33 @@ RETURNING "UserId";
     SET "IsBanned"= $1, "BanDate"= $2, "BanReason"= $3
     WHERE "UserId" = $4;`,
       [banInfo.isBanned, banInfo.banDate, banInfo.banReason, userId],
+    );
+  }
+
+  async refreshConfirmationCodeAndDate(
+    userId: number,
+    newConfirmationData: { confirmationCode: string; expirationDate: Date },
+  ) {
+    await this.dataSource.query(
+      `
+    UPDATE public."EmailConfirmation"
+    SET "ConfirmationCode"=$1, "ExpirationDate"=$2
+    WHERE "UserId" = $3;`,
+      [
+        newConfirmationData.confirmationCode,
+        newConfirmationData.expirationDate,
+        userId,
+      ],
+    );
+  }
+
+  async changePassword(newPasswordHash: string, userId: string) {
+    await this.dataSource.query(
+      `
+    UPDATE public."Users"
+    SET "PasswordHash"=$1
+    WHERE "UserId" = $2;`,
+      [newPasswordHash, userId],
     );
   }
 }

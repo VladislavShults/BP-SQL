@@ -44,28 +44,33 @@ export class AuthService {
   }
 
   async refreshConfirmationCode(email: string): Promise<string | null> {
-    const user = await this.usersRepository.getUserByEmail(email);
-    if (!user) return null;
-    user.emailConfirmation.confirmationCode = uuid();
-    user.emailConfirmation.expirationDate = add(new Date(), { hours: 5 });
-    const update = await this.usersRepository.updateUser(user);
-    if (update) return user.emailConfirmation.confirmationCode;
-    return null;
+    const userId = await this.usersRepository.checkUserByEmailInDB(email);
+    if (!userId) return null;
+
+    const newConfirmationData = {
+      confirmationCode: uuid(),
+      expirationDate: add(new Date(), { hours: 5 }),
+    };
+
+    await this.usersRepository.refreshConfirmationCodeAndDate(
+      userId,
+      newConfirmationData,
+    );
+
+    return newConfirmationData.confirmationCode;
   }
 
-  async findAccountByConfirmationCode(
-    code: string,
-  ): Promise<UserDBType | null> {
+  async findAccountByConfirmationCode(code: string) {
     const account = await this.usersRepository.findAccountByConfirmationCode(
       code,
     );
     if (!account) return null;
-    if (new Date() > account.emailConfirmation.expirationDate) return null;
+    if (new Date() > account.expirationDate) return null;
     return account;
   }
 
-  async confirmAccount(accountId: string): Promise<boolean> {
-    return await this.usersRepository.confirmedAccount(accountId);
+  async confirmAccount(code: string): Promise<boolean> {
+    return await this.usersRepository.confirmedAccount(code);
   }
 
   async accountIsConfirmed(email: string): Promise<boolean> {
@@ -76,7 +81,7 @@ export class AuthService {
     refreshToken: string,
     ip: string,
     deviceName: string | undefined,
-  ): Promise<ObjectId> {
+  ): Promise<void> {
     const userId = await this.jwtUtility.extractUserIdFromToken(refreshToken);
     const deviceId = await this.jwtUtility.extractDeviceIdFromToken(
       refreshToken,
@@ -84,16 +89,16 @@ export class AuthService {
     const issueAt = extractIssueAtFromRefreshToken(refreshToken);
     const expiresAt = extractExpiresDateFromRefreshToken(refreshToken);
     if (userId && deviceId && issueAt && deviceName && expiresAt) {
-      const newInput: Omit<DevicesSecuritySessionType, '_id'> = {
+      const newInput: Omit<DevicesSecuritySessionType, 'deviceSessionId'> = {
         issuedAt: issueAt,
-        deviceId: deviceId.toString(),
-        ip: ip,
-        deviceName: deviceName,
-        userId: userId.toString(),
+        deviceId: deviceId,
+        ip,
+        deviceName,
+        userId: userId,
         expiresAt: expiresAt,
         lastActiveDate: new Date(),
       };
-      return await this.authRepository.saveDeviceInputInDB(newInput);
+      await this.authRepository.saveDeviceInputInDB(newInput);
     }
   }
 
@@ -123,16 +128,11 @@ export class AuthService {
       refreshToken,
     );
     const userId = await this.jwtUtility.extractUserIdFromToken(refreshToken);
-    await this.authRepository.deleteRefreshToken(
-      userId.toString(),
-      issuedAtToken.toString(),
-    );
+    await this.authRepository.deleteRefreshToken(userId, issuedAtToken);
   }
 
   async changePassword(newPasswordHash: string, userId: string): Promise<void> {
-    const user = await this.usersRepository.getUser(userId);
-    user.passwordHash = newPasswordHash;
-    await this.usersRepository.updateUser(user);
+    await this.usersRepository.changePassword(newPasswordHash, userId);
   }
 
   async checkRefreshTokenForValid(

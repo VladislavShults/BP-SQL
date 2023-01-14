@@ -3,6 +3,7 @@ import { Model } from 'mongoose';
 import {
   UserDBType,
   UsersJoinBanInfoType,
+  UsersJoinEmailConfirmationType,
   ViewUsersTypeWithPagination,
   ViewUserType,
 } from '../types/users.types';
@@ -179,7 +180,9 @@ export class UsersQueryRepository {
     return user;
   }
 
-  async getUserByIdViewSQLType(userId: number): Promise<ViewUserType | null> {
+  async getUserByIdJoinBanInfoType(
+    userId: number,
+  ): Promise<ViewUserType | null> {
     const userSQLType = await this.dataSource.query(
       `
     SELECT *
@@ -194,5 +197,26 @@ export class UsersQueryRepository {
     if (!userSQLType) return null;
 
     return mapUserSQLTypeToViewType(userSQLType[0]);
+  }
+
+  async getUserByIdJoinEmailConfirmationType(
+    userId: number,
+  ): Promise<UsersJoinEmailConfirmationType> {
+    const userSQLType = await this.dataSource.query(
+      `
+    SELECT u."UserId" as "id", u."Login" as "login", u."Email" as "email",
+           e."IsConfirmed" as "isConfirmed", e."ConfirmationCode" as "confirmationCode",
+           e."ExpirationDate" as "expirationDate"
+    FROM public."Users" u
+    JOIN public."EmailConfirmation" e
+    ON u."UserId" = e."UserId"
+    WHERE "IsDeleted" = false AND u."UserId" = $1
+    `,
+      [userId],
+    );
+
+    if (!userSQLType) return null;
+
+    return userSQLType[0];
   }
 }

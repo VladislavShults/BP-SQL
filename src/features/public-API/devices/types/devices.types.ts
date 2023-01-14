@@ -1,12 +1,10 @@
-import { ObjectId } from 'mongodb';
-
 export type DevicesSecuritySessionType = {
-  _id: ObjectId;
+  deviceSessionId: number;
   issuedAt: string;
   deviceId: string;
   ip: string;
   deviceName: string;
-  userId: string;
+  userId: number;
   expiresAt: string;
   lastActiveDate: Date;
 };

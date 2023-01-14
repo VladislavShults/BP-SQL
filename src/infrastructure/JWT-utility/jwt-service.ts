@@ -1,4 +1,3 @@
-import { ObjectId } from 'mongodb';
 import * as jwt from 'jsonwebtoken';
 
 export class JwtService {
@@ -18,7 +17,7 @@ export class JwtService {
     });
   }
 
-  async extractUserIdFromToken(token: string): Promise<ObjectId | null> {
+  async extractUserIdFromToken(token: string): Promise<number | null> {
     try {
       const result: any = jwt.verify(token, process.env.JWT_SECRET);
       return result.userId;
@@ -27,7 +26,7 @@ export class JwtService {
     }
   }
 
-  async extractDeviceIdFromToken(token: string): Promise<ObjectId | null> {
+  async extractDeviceIdFromToken(token: string): Promise<string | null> {
     try {
       const result: any = jwt.verify(token, process.env.JWT_SECRET);
       return result.deviceId;
@@ -45,7 +44,7 @@ export class JwtService {
     }
   }
 
-  async extractIssueAtFromToken(refreshToken: string): Promise<number> {
+  async extractIssueAtFromToken(refreshToken: string): Promise<Date> {
     try {
       const result: any = jwt.verify(refreshToken, process.env.JWT_SECRET);
       return result.iat;

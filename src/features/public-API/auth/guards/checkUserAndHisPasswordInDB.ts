@@ -7,41 +7,48 @@ import {
 } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { Model } from 'mongoose';
-import { UserDBType } from '../../../SA-API/users/types/users.types';
+import {
+  UserDBType,
+  UsersForCheckInDB,
+} from '../../../SA-API/users/types/users.types';
 import { Request } from 'express';
 import { AuthService } from '../application/auth.service';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class CheckUserAndHisPasswordInDB implements CanActivate {
   constructor(
-    @Inject('USER_MODEL') private readonly userModel: Model<UserDBType>,
+    @InjectDataSource() private readonly dataSource: DataSource,
     private readonly authService: AuthService,
   ) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: Request = context.switchToHttp().getRequest();
 
-    let user: UserDBType | null = null;
+    let user: UsersForCheckInDB | null = null;
 
-    const accountByEmail = await this.userModel.findOne({
-      email: request.body.loginOrEmail,
-    });
-    if (accountByEmail) {
-      user = accountByEmail;
-    }
-    const accountByLogin = await this.userModel.findOne({
-      login: request.body.loginOrEmail,
-    });
-    if (accountByLogin) {
-      user = accountByLogin;
-    }
+    const accountByLoginOrEmail = await this.dataSource.query(
+      `
+    SELECT u."UserId" as "userId", u."Login" as "login", u."Email" as "email", u."PasswordHash" as "passwordHash",
+           b."IsBanned" as "isBanned"
+    FROM public."Users" u
+    JOIN public."BanInfo" b
+    ON u."UserId" = b."UserId"
+    WHERE u."IsDeleted" = false AND u."Login" = $1
+    OR(u."IsDeleted" = false AND u."Email" = $1)`,
+      [request.body.loginOrEmail],
+    );
 
-    if (!user) throw new HttpException('', HttpStatus.UNAUTHORIZED);
+    if (accountByLoginOrEmail.length > 0) {
+      user = accountByLoginOrEmail[0];
+    } else throw new HttpException('', HttpStatus.UNAUTHORIZED);
 
     const passwordValid = await this.authService.isPasswordCorrect(
       request.body.password,
       user.passwordHash,
     );
-    if (!passwordValid) throw new HttpException('', HttpStatus.UNAUTHORIZED);
+    if (!passwordValid || user.isBanned)
+      throw new HttpException('', HttpStatus.UNAUTHORIZED);
 
     request.user = user;
 
