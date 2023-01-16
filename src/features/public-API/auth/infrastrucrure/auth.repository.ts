@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
-import { ObjectId } from 'mongodb';
 import { DevicesSecuritySessionType } from '../../devices/types/devices.types';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -45,14 +44,5 @@ export class AuthRepository {
 
   async updateToken(token) {
     await token.save();
-  }
-
-  async deleteRefreshToken(userId: number, issuedAtToken: Date) {
-    await this.dataSource.query(
-      `
-    DELETE FROM public."DeviceSession"
-    WHERE "UserId" = $1 AND "IssuedAt" = $2;`,
-      [userId, issuedAtToken],
-    );
   }
 }

@@ -15,6 +15,8 @@ import { CommentDBType } from '../comments/types/comments.types';
 import { UserDBType } from '../../SA-API/users/types/users.types';
 import { LikeDBType } from '../likes/types/likes.types';
 import { DevicesSecuritySessionType } from '../devices/types/devices.types';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Controller('testing')
 export class TestingController {
@@ -33,17 +35,22 @@ export class TestingController {
     private readonly likesModel: Model<LikeDBType>,
     @Inject('BANNED_USER_FOR_BLOG_MODEL')
     private readonly bannedUserForBlogModel: Model<BannedUsersForBlogType>,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
   @Delete('all-data')
   @HttpCode(204)
   async clearAllData(): Promise<HttpStatus> {
-    await this.blogModel.deleteMany({});
-    await this.postModel.deleteMany({});
-    await this.commentModel.deleteMany({});
-    await this.userModel.deleteMany({});
-    await this.devicesSecurityModel.deleteMany({});
-    await this.likesModel.deleteMany({});
-    await this.bannedUserForBlogModel.deleteMany({});
+    await this.dataSource.query(`DELETE FROM public."Users"`);
+    await this.dataSource.query(`DELETE FROM public."EmailConfirmation"`);
+    await this.dataSource.query(`DELETE FROM public."DeviceSession"`);
+    await this.dataSource.query(`DELETE FROM public."BanInfo"`);
+    // await this.blogModel.deleteMany({});
+    // await this.postModel.deleteMany({});
+    // await this.commentModel.deleteMany({});
+    // await this.userModel.deleteMany({});
+    // await this.devicesSecurityModel.deleteMany({});
+    // await this.likesModel.deleteMany({});
+    // await this.bannedUserForBlogModel.deleteMany({});
     return;
   }
 }

@@ -1,17 +1,16 @@
 import { UsersRepository } from '../../../SA-API/users/infrastructure/users.repository';
 import { Inject, Injectable } from '@nestjs/common';
-import { UserDBType } from '../../../SA-API/users/types/users.types';
 import { v4 as uuid } from 'uuid';
 import { JwtService } from '../../../../infrastructure/JWT-utility/jwt-service';
 import { extractUserIdFromRefreshToken } from '../helpers/extractUserIdFromRefreshToken';
 import { extractIssueAtFromRefreshToken } from '../helpers/extractIssueAtFromRefreshToken';
 import { extractExpiresDateFromRefreshToken } from '../helpers/extractExpiresDateFromRefreshToken';
 import { AuthRepository } from '../infrastrucrure/auth.repository';
-import { ObjectId } from 'mongodb';
 import * as bcrypt from 'bcrypt';
 import { add } from 'date-fns';
 import { Model } from 'mongoose';
 import { DevicesSecuritySessionType } from '../../devices/types/devices.types';
+import { DevicesService } from '../../devices/application/devices.service';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +18,7 @@ export class AuthService {
     private readonly usersRepository: UsersRepository,
     private readonly jwtUtility: JwtService,
     private readonly authRepository: AuthRepository,
+    private readonly devicesService: DevicesService,
     @Inject('DEVICE_SECURITY_MODEL')
     private readonly securityDevicesModel: Model<DevicesSecuritySessionType>,
   ) {}
@@ -91,7 +91,7 @@ export class AuthService {
     if (userId && deviceId && issueAt && deviceName && expiresAt) {
       const newInput: Omit<DevicesSecuritySessionType, 'deviceSessionId'> = {
         issuedAt: issueAt,
-        deviceId: deviceId,
+        deviceId: deviceId.toString(),
         ip,
         deviceName,
         userId: userId,
@@ -123,14 +123,6 @@ export class AuthService {
     await this.authRepository.updateToken(token);
   }
 
-  async deleteRefreshToken(refreshToken: string): Promise<void> {
-    const issuedAtToken = await this.jwtUtility.extractIssueAtFromToken(
-      refreshToken,
-    );
-    const userId = await this.jwtUtility.extractUserIdFromToken(refreshToken);
-    await this.authRepository.deleteRefreshToken(userId, issuedAtToken);
-  }
-
   async changePassword(newPasswordHash: string, userId: string): Promise<void> {
     await this.usersRepository.changePassword(newPasswordHash, userId);
   }
@@ -147,13 +139,15 @@ export class AuthService {
     const issueAtToken = await this.jwtUtility.extractIssueAtFromToken(
       refreshToken,
     );
+
     const userIdFromToken = await this.jwtUtility.extractUserIdFromToken(
       refreshToken,
     );
-    const tokenInDB = await this.securityDevicesModel.findOne({
-      issuedAt: issueAtToken,
-      userId: userIdFromToken,
-    });
+
+    const tokenInDB = await this.devicesService.findDeviceByIssueAtAndUserId(
+      issueAtToken,
+      userIdFromToken,
+    );
 
     if (!tokenInDB) return false;
 

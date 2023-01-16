@@ -45,10 +45,7 @@ export class SecurityController {
     const deviceId = await this.jwtService.extractDeviceIdFromToken(
       refreshToken,
     );
-    await this.devicesService.terminateAllSessionExceptThis(
-      userId.toString(),
-      deviceId.toString(),
-    );
+    await this.devicesService.terminateAllSessionExceptThis(userId, deviceId);
     return;
   }
 
@@ -61,7 +58,7 @@ export class SecurityController {
   ) {
     const userId = await this.jwtService.extractUserIdFromToken(refreshToken);
 
-    const deviceId = params.deviceId;
+    const deviceId = Number(params.deviceId);
 
     const sessionByDeviceId = await this.devicesService.findSessionByDeviceId(
       deviceId,
@@ -72,10 +69,9 @@ export class SecurityController {
 
     if (sessionByDeviceId.userId !== userId)
       throw new HttpException('', HttpStatus.FORBIDDEN);
-    await this.devicesService.terminateSpecificDeviceSession(
-      deviceId,
-      userId.toString(),
-    );
+
+    await this.devicesService.terminateSpecificDeviceSession(deviceId, userId);
+
     return;
   }
 }

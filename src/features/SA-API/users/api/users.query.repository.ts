@@ -165,12 +165,12 @@ export class UsersQueryRepository {
     };
   }
 
-  async returnInfoAboutMe(userId: string): Promise<InfoAboutMeType> {
-    const userById = await this.userModel.findById(userId);
+  async returnInfoAboutMe(userId: number): Promise<InfoAboutMeType> {
+    const userById = await this.getUserByIdJoinEmailConfirmationType(userId);
     return {
       email: userById.email,
       login: userById.login,
-      userId: userById._id.toString(),
+      userId: userById.id.toString(),
     };
   }
 

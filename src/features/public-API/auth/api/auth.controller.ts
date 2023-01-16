@@ -4,7 +4,6 @@ import {
   Controller,
   Get,
   HttpCode,
-  HttpException,
   HttpStatus,
   Post,
   Request,
@@ -29,14 +28,11 @@ import { JwtAuthGuard } from '../guards/JWT-auth.guard';
 import { InfoAboutMeType } from '../types/info-about-me-type';
 import { CheckDuplicatedLoginGuard } from '../guards/check-duplicated-login.guard';
 import { CheckUserAndHisPasswordInDB } from '../guards/checkUserAndHisPasswordInDB';
-import {
-  UserDBType,
-  UsersForCheckInDB,
-  UsersJoinEmailConfirmationType,
-} from '../../../SA-API/users/types/users.types';
+import { UsersForCheckInDB } from '../../../SA-API/users/types/users.types';
 import { IpRestrictionGuard } from '../../../../infrastructure/ip-restriction/guards/ip-restriction.guard';
 import { Cookies } from '../decorators/cookies.decorator';
 import { CheckRefreshTokenInCookie } from '../guards/checkRefreshTokenInCookie';
+import { DevicesService } from '../../devices/application/devices.service';
 
 @Controller('auth')
 export class AuthController {
@@ -46,6 +42,7 @@ export class AuthController {
     private readonly usersService: UsersService,
     private readonly usersQueryRepository: UsersQueryRepository,
     private readonly jwtService: JwtService,
+    private readonly devicesService: DevicesService,
   ) {}
 
   @Post('registration')
@@ -118,7 +115,7 @@ export class AuthController {
     @Response() res,
   ) {
     if (req.cookies?.refreshToken) {
-      await this.authService.deleteRefreshToken(req.cookies?.refreshToken);
+      await this.devicesService.deleteDeviceSession(req.cookies?.refreshToken);
     }
     const user: UsersForCheckInDB = req.user;
 
@@ -215,15 +212,19 @@ export class AuthController {
       await this.authService.findAccountByConfirmationCode(
         inputModel.recoveryCode,
       );
+
     if (!userByConfirmationCode)
       throw new BadRequestException(createErrorMessage('recoveryCode'));
+
     const hashNewPassword = await this.authService.generateHash(
       inputModel.newPassword,
     );
+
     await this.authService.changePassword(
       hashNewPassword,
       userByConfirmationCode.userId.toString(),
     );
+
     return;
   }
 
@@ -233,15 +234,16 @@ export class AuthController {
   async logout(
     @Cookies('refreshToken') refreshToken: string,
   ): Promise<HttpStatus> {
-    await this.authService.deleteRefreshToken(refreshToken);
+    await this.devicesService.deleteDeviceSession(refreshToken);
+
     return;
   }
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async infoAboutMe(@Request() req): Promise<InfoAboutMeType> {
-    const token: string = req.headers.authorization.split(' ')[1];
-    const userId = await this.jwtService.extractUserIdFromToken(token);
-    return await this.usersQueryRepository.returnInfoAboutMe(userId.toString());
+    const userId = req.user.userId;
+
+    return await this.usersQueryRepository.returnInfoAboutMe(userId);
   }
 }
