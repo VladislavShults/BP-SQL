@@ -40,10 +40,10 @@ export class TestingController {
   @Delete('all-data')
   @HttpCode(204)
   async clearAllData(): Promise<HttpStatus> {
-    await this.dataSource.query(`DELETE FROM public."Users"`);
+    await this.dataSource.query(`DELETE FROM public."BanInfo"`);
     await this.dataSource.query(`DELETE FROM public."EmailConfirmation"`);
     await this.dataSource.query(`DELETE FROM public."DeviceSession"`);
-    await this.dataSource.query(`DELETE FROM public."BanInfo"`);
+    await this.dataSource.query(`DELETE FROM public."Users"`);
     // await this.blogModel.deleteMany({});
     // await this.postModel.deleteMany({});
     // await this.commentModel.deleteMany({});
