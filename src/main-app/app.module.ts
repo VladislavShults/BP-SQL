@@ -9,16 +9,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     BlogsPlatformModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'ep-withered-feather-839634.eu-central-1.aws.neon.tech',
+      url: 'postgres://VladislavShults:oIMdwYuk4s8z@ep-withered-feather-839634.eu-central-1.aws.neon.tech/neondb',
       port: 5432,
-      username: 'VladislavShults',
-      password: 'oIMdwYuk4s8z',
-      database: 'neondb',
       autoLoadEntities: true,
       synchronize: true,
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      ssl: true,
     }),
   ],
   controllers: [AppController],
