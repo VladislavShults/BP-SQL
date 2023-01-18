@@ -77,7 +77,7 @@ export class UsersQueryRepository {
         '%' + searchEmailTerm + '%',
       ]);
 
-      totalCount = totalCountArray[0].count;
+      totalCount = Number(totalCountArray[0].count);
 
       pagesCount = Math.ceil(totalCount / pageSize);
     }
@@ -113,7 +113,7 @@ export class UsersQueryRepository {
         '%' + searchEmailTerm + '%',
       ]);
 
-      totalCount = totalCountArray[0].count;
+      totalCount = Number(totalCountArray[0].count);
 
       pagesCount = Math.ceil(totalCount / pageSize);
     }
@@ -149,7 +149,7 @@ export class UsersQueryRepository {
         '%' + searchEmailTerm + '%',
       ]);
 
-      totalCount = totalCountArray[0].count;
+      totalCount = Number(totalCountArray[0].count);
 
       pagesCount = Math.ceil(totalCount / pageSize);
     }

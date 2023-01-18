@@ -28,15 +28,19 @@ export class UsersRepository {
   }
 
   async getUser(userId: string) {
-    const user = await this.dataSource.query(
-      `
+    try {
+      const user = await this.dataSource.query(
+        `
     SELECT "UserId", "Login", "CreatedAt", "IsDeleted"
     FROM public."Users" u
     WHERE u."UserId" = $1`,
-      [userId],
-    );
-    if (user.length === 0) return null;
-    return user[0];
+        [userId],
+      );
+      if (user.length === 0) return null;
+      return user[0];
+    } catch (error) {
+      return null;
+    }
   }
 
   async updateUser(user): Promise<boolean> {
