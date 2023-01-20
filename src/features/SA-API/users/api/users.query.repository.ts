@@ -61,8 +61,8 @@ export class UsersQueryRepository {
       `;
 
       itemsDBType = await this.dataSource.query(queryUsers, [
-        '%' + searchLoginTerm + '%',
-        '%' + searchEmailTerm + '%',
+        '%' + searchLoginTerm.toLocaleLowerCase() + '%',
+        '%' + searchEmailTerm.toLocaleLowerCase() + '%',
       ]);
 
       const queryCount = `SELECT count(*)
@@ -73,8 +73,8 @@ export class UsersQueryRepository {
                         OR (LOWER ("Email") LIKE $2 AND "IsDeleted" = false)`;
 
       const totalCountArray = await this.dataSource.query(queryCount, [
-        '%' + searchLoginTerm + '%',
-        '%' + searchEmailTerm + '%',
+        '%' + searchLoginTerm.toLocaleLowerCase() + '%',
+        '%' + searchEmailTerm.toLocaleLowerCase() + '%',
       ]);
 
       totalCount = Number(totalCountArray[0].count);
@@ -97,8 +97,8 @@ export class UsersQueryRepository {
       `;
 
       itemsDBType = await this.dataSource.query(queryUsers, [
-        '%' + searchLoginTerm + '%',
-        '%' + searchEmailTerm + '%',
+        '%' + searchLoginTerm.toLocaleLowerCase() + '%',
+        '%' + searchEmailTerm.toLocaleLowerCase() + '%',
       ]);
 
       const queryCount = `SELECT count(*)
@@ -109,8 +109,8 @@ export class UsersQueryRepository {
                         OR (LOWER ("Email") LIKE $2 AND "IsDeleted" = false AND "IsBanned" = true)`;
 
       const totalCountArray = await this.dataSource.query(queryCount, [
-        '%' + searchLoginTerm + '%',
-        '%' + searchEmailTerm + '%',
+        '%' + searchLoginTerm.toLocaleLowerCase() + '%',
+        '%' + searchEmailTerm.toLocaleLowerCase() + '%',
       ]);
 
       totalCount = Number(totalCountArray[0].count);
@@ -133,8 +133,8 @@ export class UsersQueryRepository {
       `;
 
       itemsDBType = await this.dataSource.query(queryUsers, [
-        '%' + searchLoginTerm + '%',
-        '%' + searchEmailTerm + '%',
+        '%' + searchLoginTerm.toLocaleLowerCase() + '%',
+        '%' + searchEmailTerm.toLocaleLowerCase() + '%',
       ]);
 
       const queryCount = `SELECT count(*)
@@ -145,8 +145,8 @@ export class UsersQueryRepository {
                         OR (LOWER ("Email") LIKE $2 AND "IsDeleted" = false AND "IsBanned" = false)`;
 
       const totalCountArray = await this.dataSource.query(queryCount, [
-        '%' + searchLoginTerm + '%',
-        '%' + searchEmailTerm + '%',
+        '%' + searchLoginTerm.toLocaleLowerCase() + '%',
+        '%' + searchEmailTerm.toLocaleLowerCase() + '%',
       ]);
 
       totalCount = Number(totalCountArray[0].count);
