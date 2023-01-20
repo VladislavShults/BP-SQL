@@ -53,14 +53,12 @@ export class AuthController {
     CheckDuplicatedLoginGuard,
   )
   async registration(@Body() inputModel: CreateUserDto): Promise<HttpStatus> {
-    const newUserId = await this.usersService.createUser(inputModel);
-    const user =
-      await this.usersQueryRepository.getUserByIdJoinEmailConfirmationType(
-        newUserId,
-      );
+    const newUserIdAndConfirmCode = await this.usersService.createUser(
+      inputModel,
+    );
     this.emailService.sendEmailRecoveryCode(
       inputModel.email,
-      user.confirmationCode,
+      newUserIdAndConfirmCode.confirmationCode,
     );
     return;
   }

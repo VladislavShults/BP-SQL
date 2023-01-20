@@ -34,8 +34,12 @@ export class UsersController {
   @HttpCode(201)
   @UseGuards(BasicAuthGuard)
   async createUser(@Body() inputModel: CreateUserDto): Promise<ViewUserType> {
-    const userId = await this.usersService.createUser(inputModel);
-    return await this.usersQueryRepository.getUserByIdJoinBanInfoType(userId);
+    const userIdAndConfirmationCode = await this.usersService.createUser(
+      inputModel,
+    );
+    return await this.usersQueryRepository.getUserByIdJoinBanInfoType(
+      userIdAndConfirmationCode.userId,
+    );
   }
 
   @Get()

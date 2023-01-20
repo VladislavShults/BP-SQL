@@ -5,7 +5,6 @@ import { CreateUserDto } from '../api/models/create-user.dto';
 import { v4 as uuidv4 } from 'uuid';
 import {
   EmailConfirmationType,
-  UserDBType,
   UserForTypeOrmType,
 } from '../types/users.types';
 import { BanUserDto } from '../api/models/ban-user.dto';
@@ -28,8 +27,12 @@ export class UsersService {
     private readonly usersQueryRepository: UsersQueryRepository,
   ) {}
 
-  async createUser(inputModel: CreateUserDto): Promise<number> {
+  async createUser(
+    inputModel: CreateUserDto,
+  ): Promise<{ userId: number; confirmationCode: string }> {
     const hash = await this.authService.generateHash(inputModel.password);
+
+    const confirmationCode = uuidv4();
 
     const user: UserForTypeOrmType = {
       login: inputModel.login,
@@ -41,7 +44,7 @@ export class UsersService {
     const userId = await this.usersRepository.createUser(user);
 
     const emailConfirmation: EmailConfirmationType = {
-      confirmationCode: uuidv4(),
+      confirmationCode,
       expirationDate: addHours(new Date(), 5),
       isConfirmed: false,
       userId,
@@ -51,7 +54,7 @@ export class UsersService {
 
     await this.usersRepository.createBanInfoForUser(userId);
 
-    return userId;
+    return { userId, confirmationCode };
   }
 
   async deleteUserById(userId: string): Promise<boolean> {
