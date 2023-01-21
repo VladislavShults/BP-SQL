@@ -1,5 +1,5 @@
 export type IpRestrictionType = {
   endpoint: string;
   currentIp: string;
-  timeInput: number;
+  timeInput: Date;
 };
