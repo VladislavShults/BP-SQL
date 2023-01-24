@@ -117,11 +117,11 @@ export class AuthController {
 
     const newAccessToken = await this.authService.createAccessToken(
       user.userId.toString(),
-      '100000',
+      '10000',
     );
     const newRefreshToken = await this.authService.createRefreshToken(
       user.userId.toString(),
-      '200000',
+      '20000',
     );
     await this.devicesService.saveDeviceInputInDB(
       newRefreshToken,
@@ -130,9 +130,9 @@ export class AuthController {
     );
     res
       .cookie('refreshToken', newRefreshToken, {
-        httpOnly: false,
-        secure: false,
-        maxAge: 200 * 1000,
+        httpOnly: true,
+        secure: true,
+        maxAge: 20 * 1000,
       })
       .status(200)
       .json({ accessToken: newAccessToken });
@@ -162,12 +162,12 @@ export class AuthController {
 
     const newAccessToken = await this.authService.createAccessToken(
       userIdFromRefreshToken.toString(),
-      '100000',
+      '10000',
     );
     const newRefreshToken = await this.jwtService.createRefreshJWT(
       userIdFromRefreshToken.toString(),
       deviceId.toString(),
-      '200000',
+      '20000',
     );
     await this.devicesService.changeRefreshTokenInDeviceSession(
       oldRefreshToken,
@@ -176,9 +176,9 @@ export class AuthController {
     );
     res
       .cookie('refreshToken', newRefreshToken, {
-        httpOnly: false,
-        secure: false,
-        maxAge: 200 * 1000,
+        httpOnly: true,
+        secure: true,
+        maxAge: 20 * 1000,
       })
       .status(200)
       .json({ accessToken: newAccessToken });
