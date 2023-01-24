@@ -4,7 +4,6 @@ import {
   Controller,
   Get,
   HttpCode,
-  HttpException,
   HttpStatus,
   Post,
   Request,
@@ -146,15 +145,15 @@ export class AuthController {
     @Response() res,
     @Request() req,
   ) {
-    const userIdFromBodyAccessToken =
-      await this.jwtService.extractUserIdFromToken(inputModel.accessToken);
+    // const userIdFromBodyAccessToken =
+    //   await this.jwtService.extractUserIdFromToken(inputModel.accessToken);
 
     const userIdFromRefreshToken = await this.jwtService.extractUserIdFromToken(
       oldRefreshToken,
     );
 
-    if (userIdFromBodyAccessToken !== userIdFromRefreshToken)
-      throw new HttpException('token', HttpStatus.UNAUTHORIZED);
+    // if (userIdFromBodyAccessToken !== userIdFromRefreshToken)
+    //   throw new HttpException('token', HttpStatus.UNAUTHORIZED);
 
     const deviceId = await this.jwtService.extractDeviceIdFromToken(
       oldRefreshToken,
