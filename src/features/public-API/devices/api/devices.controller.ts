@@ -45,7 +45,10 @@ export class SecurityController {
     const deviceId = await this.jwtService.extractDeviceIdFromToken(
       refreshToken,
     );
-    await this.devicesService.terminateAllSessionExceptThis(userId, deviceId);
+    await this.devicesService.terminateAllSessionExcludeCurrent(
+      userId,
+      deviceId,
+    );
     return;
   }
 

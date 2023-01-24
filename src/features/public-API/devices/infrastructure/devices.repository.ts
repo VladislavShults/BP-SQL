@@ -46,7 +46,7 @@ export class DeviceRepository {
     return this.dataSource.query(
       `
     SELECT "DeviceSessionId" as "deviceSessionId", "DeviceId" as "deviceId", "Ip" as "ip", "DeviceName" as "deviceName",
-            "UserId" as "UserId", "LastActiveDate" as "lastActiveDate", "ExpiresAt" as "expiresAt", "IssuedAt" as "issuedAt"
+            "UserId" as "userId", "LastActiveDate" as "lastActiveDate", "ExpiresAt" as "expiresAt", "IssuedAt" as "issuedAt"
     FROM public."DeviceSession"
     WHERE "DeviceId" = $1`,
       [deviceId],

@@ -16,7 +16,7 @@ export class DevicesService {
     private readonly deviceRepository: DeviceRepository,
   ) {}
 
-  async terminateAllSessionExceptThis(
+  async terminateAllSessionExcludeCurrent(
     userId: string,
     deviceId: string,
   ): Promise<void> {
@@ -32,7 +32,7 @@ export class DevicesService {
 
   async findSessionByDeviceId(
     deviceId: string,
-  ): Promise<DevicesSecuritySessionType | null> {
+  ): Promise<DevicesSecuritySessionType> {
     const sessionsByDeviceIdArray =
       await this.deviceRepository.getSessionByDeviceId(deviceId);
     if (sessionsByDeviceIdArray.length === 0) return null;
