@@ -1,22 +1,27 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   DevicesResponseType,
   DevicesSecuritySessionType,
 } from '../types/devices.types';
-import { Model } from 'mongoose';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class DevicesQueryRepository {
-  constructor(
-    @Inject('DEVICE_SECURITY_MODEL')
-    private readonly deviceSecurityModel: Model<DevicesSecuritySessionType>,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
   async getActiveSessionCurrentUser(
     userId: string,
   ): Promise<DevicesResponseType[]> {
-    const activeSession: DevicesSecuritySessionType[] =
-      await this.deviceSecurityModel.find({ userId: userId }).lean();
-    return activeSession.map((session) => ({
+    const activeSessions: DevicesSecuritySessionType[] =
+      await this.dataSource.query(
+        `
+      SELECT "Ip" as "ip", "DeviceName" as "deviceName", "LastActiveDate" as "lastActiveDate", "DeviceId" as "deviceId"
+      FROM public."DeviceSession"
+      WHERE "UserId" = $1;`,
+        [userId],
+      );
+
+    return activeSessions.map((session) => ({
       ip: session.ip,
       title: session.deviceName,
       lastActiveDate: session.lastActiveDate,

@@ -1,17 +1,12 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Model } from 'mongoose';
+import { Injectable } from '@nestjs/common';
 import { DevicesSecuritySessionType } from '../types/devices.types';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 @Injectable()
 export class DeviceRepository {
-  constructor(
-    @Inject('DEVICE_SECURITY_MODEL')
-    private readonly devicesSecurityModel: Model<DevicesSecuritySessionType>,
-    @InjectDataSource() private readonly dataSource: DataSource,
-  ) {}
-  async deleteDeviceSession(userId: number, deviceId: number) {
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
+  async deleteDeviceSession(userId: string, deviceId: string) {
     await this.dataSource.query(
       `
     DELETE FROM public."DeviceSession"
@@ -21,8 +16,8 @@ export class DeviceRepository {
   }
 
   async findDeviceByIssueAtAndUserId(
-    issueAt: number,
-    userId: number,
+    issueAt: string,
+    userId: string,
   ): Promise<boolean> {
     const deviceIdArray = await this.dataSource.query(
       `
@@ -36,7 +31,7 @@ export class DeviceRepository {
     return deviceIdArray.length !== 0;
   }
 
-  async terminateAllSessionExceptThis(userId: number, deviceId: number) {
+  async terminateAllSessionExceptThis(userId: string, deviceId: string) {
     await this.dataSource.query(
       `
         DELETE FROM public."DeviceSession"
@@ -46,7 +41,7 @@ export class DeviceRepository {
   }
 
   async getSessionByDeviceId(
-    deviceId: number,
+    deviceId: string,
   ): Promise<DevicesSecuritySessionType[] | null> {
     return this.dataSource.query(
       `

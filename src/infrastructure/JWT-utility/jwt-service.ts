@@ -17,7 +17,7 @@ export class JwtService {
     });
   }
 
-  async extractUserIdFromToken(token: string): Promise<number | null> {
+  async extractUserIdFromToken(token: string): Promise<string | null> {
     try {
       const result: any = jwt.verify(token, process.env.JWT_SECRET);
       return result.userId;
@@ -26,7 +26,7 @@ export class JwtService {
     }
   }
 
-  async extractDeviceIdFromToken(token: string): Promise<number | null> {
+  async extractDeviceIdFromToken(token: string): Promise<string | null> {
     try {
       const result: any = jwt.verify(token, process.env.JWT_SECRET);
       return result.deviceId;

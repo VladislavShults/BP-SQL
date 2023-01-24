@@ -17,21 +17,21 @@ export class DevicesService {
   ) {}
 
   async terminateAllSessionExceptThis(
-    userId: number,
-    deviceId: number,
+    userId: string,
+    deviceId: string,
   ): Promise<void> {
     await this.deviceRepository.terminateAllSessionExceptThis(userId, deviceId);
   }
 
   async terminateSpecificDeviceSession(
-    deviceId: number,
-    userId: number,
+    deviceId: string,
+    userId: string,
   ): Promise<void> {
     await this.deviceRepository.deleteDeviceSession(userId, deviceId);
   }
 
   async findSessionByDeviceId(
-    deviceId: number,
+    deviceId: string,
   ): Promise<DevicesSecuritySessionType | null> {
     const sessionsByDeviceIdArray =
       await this.deviceRepository.getSessionByDeviceId(deviceId);
@@ -56,7 +56,10 @@ export class DevicesService {
     await this.deviceRepository.deleteDeviceSession(userId, deviceId);
   }
 
-  async findDeviceByIssueAtAndUserId(issueAt: number, userId: number) {
+  async findDeviceByIssueAtAndUserId(
+    issueAt: string,
+    userId: string,
+  ): Promise<boolean> {
     return this.deviceRepository.findDeviceByIssueAtAndUserId(issueAt, userId);
   }
 
@@ -77,7 +80,7 @@ export class DevicesService {
         deviceId: deviceId.toString(),
         ip,
         deviceName,
-        userId: userId,
+        userId: Number(userId),
         expiresAt: expiresAt,
         lastActiveDate: new Date(),
       };

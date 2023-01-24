@@ -24,7 +24,6 @@ import { AccessTokenAuthDto } from './models/access-token-auth.dto';
 import { JwtService } from '../../../../infrastructure/JWT-utility/jwt-service';
 import { EmailAuthDto } from './models/email-auth.dto';
 import { NewPasswordAuthDto } from './models/new-password.auth.dto';
-import { JwtAuthGuard } from '../guards/JWT-auth.guard';
 import { InfoAboutMeType } from '../types/info-about-me-type';
 import { CheckDuplicatedLoginGuard } from '../guards/check-duplicated-login.guard';
 import { CheckUserAndHisPasswordInDB } from '../guards/checkUserAndHisPasswordInDB';
@@ -33,6 +32,7 @@ import { IpRestrictionGuard } from '../../../../infrastructure/ip-restriction/gu
 import { Cookies } from '../decorators/cookies.decorator';
 import { CheckRefreshTokenInCookie } from '../guards/checkRefreshTokenInCookie';
 import { DevicesService } from '../../devices/application/devices.service';
+import { JWTAuthRefreshTokenGuard } from '../guards/JWT-auth-RefreshTokenGuard';
 
 @Controller('auth')
 export class AuthController {
@@ -234,9 +234,9 @@ export class AuthController {
   }
 
   @Get('me')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JWTAuthRefreshTokenGuard)
   async infoAboutMe(@Request() req): Promise<InfoAboutMeType> {
-    const userId = req.user.userId;
+    const userId = Number(req.user.userId);
 
     return await this.usersQueryRepository.returnInfoAboutMe(userId);
   }

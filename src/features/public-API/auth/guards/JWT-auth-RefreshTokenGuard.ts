@@ -10,7 +10,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 @Injectable()
-export class JwtAuthGuard implements CanActivate {
+export class JWTAuthRefreshTokenGuard implements CanActivate {
   constructor(
     private readonly jwtUtility: JwtService,
     @InjectDataSource() private readonly dataSource: DataSource,
@@ -18,11 +18,9 @@ export class JwtAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: Request = context.switchToHttp().getRequest();
-    if (!request.headers.authorization) throw new UnauthorizedException();
+    const refreshToken = request.cookies.refreshToken || null;
 
-    const token: string = request.headers.authorization.split(' ')[1];
-
-    const userId = await this.jwtUtility.extractUserIdFromToken(token);
+    const userId = await this.jwtUtility.extractUserIdFromToken(refreshToken);
     if (!userId) throw new UnauthorizedException();
 
     const user = await this.dataSource.query(

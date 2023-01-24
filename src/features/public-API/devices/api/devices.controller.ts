@@ -58,7 +58,7 @@ export class SecurityController {
   ) {
     const userId = await this.jwtService.extractUserIdFromToken(refreshToken);
 
-    const deviceId = Number(params.deviceId);
+    const deviceId = params.deviceId;
 
     const sessionByDeviceId = await this.devicesService.findSessionByDeviceId(
       deviceId,
@@ -67,7 +67,7 @@ export class SecurityController {
     if (!sessionByDeviceId)
       throw new HttpException('session not found', HttpStatus.NOT_FOUND);
 
-    if (sessionByDeviceId.userId !== userId)
+    if (sessionByDeviceId.userId !== Number(userId))
       throw new HttpException('', HttpStatus.FORBIDDEN);
 
     await this.devicesService.terminateSpecificDeviceSession(deviceId, userId);
