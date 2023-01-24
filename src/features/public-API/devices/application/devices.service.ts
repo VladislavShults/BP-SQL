@@ -3,6 +3,9 @@ import { Model } from 'mongoose';
 import { DevicesSecuritySessionType } from '../types/devices.types';
 import { JwtService } from '../../../../infrastructure/JWT-utility/jwt-service';
 import { DeviceRepository } from '../infrastructure/devices.repository';
+import { extractIssueAtFromRefreshToken } from '../../auth/helpers/extractIssueAtFromRefreshToken';
+import { extractExpiresDateFromRefreshToken } from '../../auth/helpers/extractExpiresDateFromRefreshToken';
+import { extractUserIdFromRefreshToken } from '../../auth/helpers/extractUserIdFromRefreshToken';
 
 @Injectable()
 export class DevicesService {
@@ -55,5 +58,50 @@ export class DevicesService {
 
   async findDeviceByIssueAtAndUserId(issueAt: number, userId: number) {
     return this.deviceRepository.findDeviceByIssueAtAndUserId(issueAt, userId);
+  }
+
+  async saveDeviceInputInDB(
+    refreshToken: string,
+    ip: string,
+    deviceName: string | undefined,
+  ): Promise<void> {
+    const userId = await this.jwtUtility.extractUserIdFromToken(refreshToken);
+    const deviceId = await this.jwtUtility.extractDeviceIdFromToken(
+      refreshToken,
+    );
+    const issueAt = extractIssueAtFromRefreshToken(refreshToken);
+    const expiresAt = extractExpiresDateFromRefreshToken(refreshToken);
+    if (userId && deviceId && issueAt && deviceName && expiresAt) {
+      const newInput: Omit<DevicesSecuritySessionType, 'deviceSessionId'> = {
+        issuedAt: issueAt,
+        deviceId: deviceId.toString(),
+        ip,
+        deviceName,
+        userId: userId,
+        expiresAt: expiresAt,
+        lastActiveDate: new Date(),
+      };
+      await this.deviceRepository.saveDeviceInputInDB(newInput);
+    }
+  }
+
+  async changeRefreshTokenInDeviceSession(
+    oldRefreshToken: string,
+    newRefreshToken: string,
+    ip: string,
+  ): Promise<void> {
+    const issuedAtOldToken = extractIssueAtFromRefreshToken(oldRefreshToken);
+    const userIdOldToken = extractUserIdFromRefreshToken(oldRefreshToken);
+    const issuedAtNewToken = extractIssueAtFromRefreshToken(newRefreshToken);
+    const expiresAtNewToken =
+      extractExpiresDateFromRefreshToken(newRefreshToken);
+
+    await this.deviceRepository.changeRefreshTokenInDeviceSession(
+      issuedAtOldToken,
+      userIdOldToken,
+      issuedAtNewToken,
+      expiresAtNewToken,
+      ip,
+    );
   }
 }

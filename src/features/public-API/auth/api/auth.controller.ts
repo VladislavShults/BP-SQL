@@ -4,6 +4,7 @@ import {
   Controller,
   Get,
   HttpCode,
+  HttpException,
   HttpStatus,
   Post,
   Request,
@@ -116,22 +117,22 @@ export class AuthController {
 
     const newAccessToken = await this.authService.createAccessToken(
       user.userId.toString(),
-      '10000',
+      '100000',
     );
     const newRefreshToken = await this.authService.createRefreshToken(
       user.userId.toString(),
-      '20000',
+      '200000',
     );
-    await this.authService.saveDeviceInputInDB(
+    await this.devicesService.saveDeviceInputInDB(
       newRefreshToken,
       req.ip,
       req.headers['user-agent'],
     );
     res
       .cookie('refreshToken', newRefreshToken, {
-        httpOnly: true,
-        secure: true,
-        maxAge: 20 * 1000,
+        httpOnly: false,
+        secure: false,
+        maxAge: 200 * 1000,
       })
       .status(200)
       .json({ accessToken: newAccessToken });
@@ -145,16 +146,15 @@ export class AuthController {
     @Response() res,
     @Request() req,
   ) {
-    // const userIdFromBodyAccessToken =
-    //   (await this.jwtService.extractUserIdFromToken(inputModel.accessToken)) ||
-    //   null;
+    const userIdFromBodyAccessToken =
+      await this.jwtService.extractUserIdFromToken(inputModel.accessToken);
 
     const userIdFromRefreshToken = await this.jwtService.extractUserIdFromToken(
       oldRefreshToken,
     );
 
-    // if (userIdFromBodyAccessToken !== userIdFromRefreshToken)
-    //   throw new HttpException('token', HttpStatus.UNAUTHORIZED);
+    if (userIdFromBodyAccessToken !== userIdFromRefreshToken)
+      throw new HttpException('token', HttpStatus.UNAUTHORIZED);
 
     const deviceId = await this.jwtService.extractDeviceIdFromToken(
       oldRefreshToken,
@@ -162,23 +162,23 @@ export class AuthController {
 
     const newAccessToken = await this.authService.createAccessToken(
       userIdFromRefreshToken.toString(),
-      '10000',
+      '100000',
     );
     const newRefreshToken = await this.jwtService.createRefreshJWT(
       userIdFromRefreshToken.toString(),
       deviceId.toString(),
-      '20000',
+      '200000',
     );
-    await this.authService.updateRefreshToken(
+    await this.devicesService.changeRefreshTokenInDeviceSession(
       oldRefreshToken,
       newRefreshToken,
       req.ip,
     );
     res
       .cookie('refreshToken', newRefreshToken, {
-        httpOnly: true,
-        secure: true,
-        maxAge: 20 * 1000,
+        httpOnly: false,
+        secure: false,
+        maxAge: 200 * 1000,
       })
       .status(200)
       .json({ accessToken: newAccessToken });

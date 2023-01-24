@@ -29,7 +29,6 @@ import { EmailService } from '../SMTP-adapter/email-service';
 import { EmailManager } from '../SMTP-adapter/email-manager';
 import { EmailAdapter } from '../SMTP-adapter/email-adapter';
 import { devicesSecurityMongooseConnection } from '../../features/public-API/devices/devicesSecurityMongooseConnection';
-import { AuthRepository } from '../../features/public-API/auth/infrastrucrure/auth.repository';
 import { LikesService } from '../../features/public-API/likes/application/likes.service';
 import { LikesRepository } from '../../features/public-API/likes/infrastructure/likes.repository';
 import { BlogIdValidation } from '../../features/public-API/blogs/validation/blogId-validation';
@@ -75,7 +74,6 @@ import { DeviceRepository } from '../../features/public-API/devices/infrastructu
     UsersRepository,
     UsersQueryRepository,
     AuthService,
-    AuthRepository,
     JwtService,
     EmailService,
     EmailManager,

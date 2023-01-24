@@ -27,8 +27,8 @@ export class DeviceRepository {
     const deviceIdArray = await this.dataSource.query(
       `
     SELECT "DeviceId"
-    FROM public."DeviceSession"
-    WHERE "UserId" = $1 AND "IssueAt" = $2
+    FROM "DeviceSession"
+    WHERE "UserId" = $1 AND "IssuedAt" = $2
     `,
       [userId, issueAt],
     );
@@ -56,5 +56,52 @@ export class DeviceRepository {
     WHERE "DeviceId" = $1`,
       [deviceId],
     );
+  }
+
+  async saveDeviceInputInDB(
+    newInput: Omit<DevicesSecuritySessionType, 'deviceSessionId'>,
+  ): Promise<void> {
+    await this.dataSource.query(
+      `
+    INSERT INTO public."DeviceSession"(
+        "DeviceId", "Ip", "DeviceName", "UserId", "LastActiveDate", "ExpiresAt", "IssuedAt")
+    VALUES ($1, $2, $3, $4, $5, $6, $7);`,
+      [
+        newInput.deviceId,
+        newInput.ip,
+        newInput.deviceName,
+        newInput.userId,
+        newInput.lastActiveDate,
+        newInput.expiresAt,
+        newInput.issuedAt,
+      ],
+    );
+  }
+
+  async changeRefreshTokenInDeviceSession(
+    issuedAtOldToken: string,
+    userIdOldToken: string,
+    issuedAtNewToken: string,
+    expiresAtNewToken: string,
+    ip: string,
+  ) {
+    try {
+      await this.dataSource.query(
+        `
+      UPDATE public."DeviceSession"
+      SET "Ip"=$1, "LastActiveDate"=$2, "ExpiresAt"=$3, "IssuedAt"=$4
+      WHERE "UserId" = $5 AND "IssuedAt" = $6;`,
+        [
+          ip,
+          new Date(),
+          expiresAtNewToken,
+          issuedAtNewToken,
+          userIdOldToken,
+          issuedAtOldToken,
+        ],
+      );
+    } catch (error) {
+      return null;
+    }
   }
 }

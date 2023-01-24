@@ -2,10 +2,6 @@ import { UsersRepository } from '../../../SA-API/users/infrastructure/users.repo
 import { Inject, Injectable } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
 import { JwtService } from '../../../../infrastructure/JWT-utility/jwt-service';
-import { extractUserIdFromRefreshToken } from '../helpers/extractUserIdFromRefreshToken';
-import { extractIssueAtFromRefreshToken } from '../helpers/extractIssueAtFromRefreshToken';
-import { extractExpiresDateFromRefreshToken } from '../helpers/extractExpiresDateFromRefreshToken';
-import { AuthRepository } from '../infrastrucrure/auth.repository';
 import * as bcrypt from 'bcrypt';
 import { add } from 'date-fns';
 import { Model } from 'mongoose';
@@ -17,7 +13,6 @@ export class AuthService {
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly jwtUtility: JwtService,
-    private readonly authRepository: AuthRepository,
     private readonly devicesService: DevicesService,
     @Inject('DEVICE_SECURITY_MODEL')
     private readonly securityDevicesModel: Model<DevicesSecuritySessionType>,
@@ -77,52 +72,6 @@ export class AuthService {
     return await this.usersRepository.accountIsConfirmed(email);
   }
 
-  async saveDeviceInputInDB(
-    refreshToken: string,
-    ip: string,
-    deviceName: string | undefined,
-  ): Promise<void> {
-    const userId = await this.jwtUtility.extractUserIdFromToken(refreshToken);
-    const deviceId = await this.jwtUtility.extractDeviceIdFromToken(
-      refreshToken,
-    );
-    const issueAt = extractIssueAtFromRefreshToken(refreshToken);
-    const expiresAt = extractExpiresDateFromRefreshToken(refreshToken);
-    if (userId && deviceId && issueAt && deviceName && expiresAt) {
-      const newInput: Omit<DevicesSecuritySessionType, 'deviceSessionId'> = {
-        issuedAt: issueAt,
-        deviceId: deviceId.toString(),
-        ip,
-        deviceName,
-        userId: userId,
-        expiresAt: expiresAt,
-        lastActiveDate: new Date(),
-      };
-      await this.authRepository.saveDeviceInputInDB(newInput);
-    }
-  }
-
-  async updateRefreshToken(
-    oldRefreshToken: string,
-    newRefreshToken: string,
-    ip: string,
-  ): Promise<void> {
-    const issuedAtOldToken = extractIssueAtFromRefreshToken(oldRefreshToken);
-    const userIdOldToken = extractUserIdFromRefreshToken(oldRefreshToken);
-    const issuedAtNewToken = extractIssueAtFromRefreshToken(newRefreshToken);
-    const expiresAtNewToken =
-      extractExpiresDateFromRefreshToken(newRefreshToken);
-    const token = await this.authRepository.findTokenByUserIdAndIssuedAt(
-      userIdOldToken,
-      issuedAtOldToken,
-    );
-    token.issuedAt = issuedAtNewToken;
-    token.ip = ip;
-    token.expiresAt = expiresAtNewToken;
-    token.lastActiveDate = new Date();
-    await this.authRepository.updateToken(token);
-  }
-
   async changePassword(newPasswordHash: string, userId: string): Promise<void> {
     await this.usersRepository.changePassword(newPasswordHash, userId);
   }
@@ -144,13 +93,9 @@ export class AuthService {
       refreshToken,
     );
 
-    const tokenInDB = await this.devicesService.findDeviceByIssueAtAndUserId(
+    return await this.devicesService.findDeviceByIssueAtAndUserId(
       issueAtToken,
       userIdFromToken,
     );
-
-    if (!tokenInDB) return false;
-
-    return true;
   }
 }
