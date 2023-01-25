@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { PostDBType } from '../types/posts.types';
 
-export const PostSchema = new mongoose.Schema<Omit<PostDBType, '_id'>>(
+export const PostSchema = new mongoose.Schema(
   {
     title: String,
     shortDescription: String,

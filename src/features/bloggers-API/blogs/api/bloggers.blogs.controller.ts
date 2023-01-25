@@ -72,11 +72,8 @@ export class BloggersBlogsController {
   ): Promise<ViewBlogType> {
     const user: UserDBType = req.user;
 
-    const newBlogObjectId = await this.blogsService.createBlog(
-      createBlogDTO,
-      user,
-    );
-    return await this.blogsQueryRepository.findBlogById(newBlogObjectId);
+    const newBlogId = await this.blogsService.createBlog(createBlogDTO, user);
+    return await this.blogsQueryRepository.findBlogById(newBlogId);
   }
 
   @Get()
@@ -86,27 +83,27 @@ export class BloggersBlogsController {
     return await this.blogsQueryRepository.getBlogs(query, userId);
   }
 
-  @Post(':blogId/posts')
-  @HttpCode(201)
-  @UseGuards(JwtAuthGuard, CheckBlogInDBAndBlogOwnerGuard)
-  async createPostForSpecificBlog(
-    @Param() params: URIParamBlogDto,
-    @Body() inputModel: CreatePostBySpecificBlogDto,
-  ): Promise<ViewPostType> {
-    const createPostDTO = this.blogsService.createPostDTO(
-      params.blogId,
-      inputModel,
-    );
-
-    const blog = await this.blogsService.findBlogById(params.blogId);
-
-    const postObjectId = await this.postsService.createPost(
-      createPostDTO,
-      blog.blogOwnerInfo.userId,
-    );
-
-    return await this.postsQueryRepository.getPostById(postObjectId.toString());
-  }
+  // @Post(':blogId/posts')
+  // @HttpCode(201)
+  // @UseGuards(JwtAuthGuard, CheckBlogInDBAndBlogOwnerGuard)
+  // async createPostForSpecificBlog(
+  //   @Param() params: URIParamBlogDto,
+  //   @Body() inputModel: CreatePostBySpecificBlogDto,
+  // ): Promise<ViewPostType> {
+  //   const createPostDTO = this.blogsService.createPostDTO(
+  //     params.blogId,
+  //     inputModel,
+  //   );
+  //
+  //   const blog = await this.blogsService.findBlogById(params.blogId);
+  //
+  //   const postObjectId = await this.postsService.createPost(
+  //     createPostDTO,
+  //     blog.blogOwnerInfo.userId,
+  //   );
+  //
+  //   return await this.postsQueryRepository.getPostById(postObjectId.toString());
+  // }
 
   @Put(':blogId/posts/:postId')
   @HttpCode(204)

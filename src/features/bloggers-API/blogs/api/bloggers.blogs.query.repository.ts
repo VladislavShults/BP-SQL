@@ -9,19 +9,28 @@ import {
 import { mapBlogById } from '../../../public-API/blogs/helpers/mapBlogByIdToViewModel';
 import { QueryBlogDto } from '../../../public-API/blogs/api/models/query-blog.dto';
 import { mapBlog } from '../../../public-API/blogs/helpers/mapBlogDBToViewModel';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class BloggersBlogsQueryRepository {
   constructor(
     @Inject('BLOG_MODEL')
     private readonly blogModel: Model<BlogDBType>,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async findBlogById(blogId: string): Promise<ViewBlogType | null> {
-    if (blogId.length !== 24) return null;
-    const blogDBType = await this.blogModel.findById(blogId);
+    const blogDBType = await this.dataSource.query(
+      `
+    SELECT "BlogId" as "id", "BlogName" as "name", "Description" as "description",
+            "WebsiteUrl" as "websiteUrl", "CreatedAt" as "createdAt"
+    FROM public."Blogs"
+    WHERE "BlogId" = $1;`,
+      [blogId],
+    );
     if (!blogDBType) return null;
-    return mapBlogById(blogDBType);
+    return mapBlogById(blogDBType[0]);
   }
 
   async getBlogs(

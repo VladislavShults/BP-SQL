@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { BlogDBType } from '../types/blogs.types';
 
-export const BlogSchema = new mongoose.Schema<Omit<BlogDBType, '_id'>>(
+export const BlogSchema = new mongoose.Schema(
   {
     name: String,
     description: String,

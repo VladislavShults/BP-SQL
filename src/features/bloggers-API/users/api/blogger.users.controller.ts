@@ -29,43 +29,43 @@ export class BloggerUsersController {
     private readonly usersService: UsersService,
   ) {}
 
-  @Put(':userId/ban')
-  @HttpCode(204)
-  @UseGuards(JwtAuthGuard)
-  async banAndUnbanUser(
-    @Param() params: URIParamUserDto,
-    @Body() inputModel: BanUserForBlogDto,
-    @Request() req,
-  ): Promise<HttpStatus> {
-    const user = await this.usersService.findUserById(params.userId);
-    if (!user) throw new HttpException('user not found', HttpStatus.NOT_FOUND);
+  // @Put(':userId/ban')
+  // @HttpCode(204)
+  // @UseGuards(JwtAuthGuard)
+  // async banAndUnbanUser(
+  //   @Param() params: URIParamUserDto,
+  //   @Body() inputModel: BanUserForBlogDto,
+  //   @Request() req,
+  // ): Promise<HttpStatus> {
+  //   const user = await this.usersService.findUserById(params.userId);
+  //   if (!user) throw new HttpException('user not found', HttpStatus.NOT_FOUND);
+  //
+  //   const blog = await this.blogsService.findBlogById(inputModel.blogId);
+  //   if (!blog) throw new HttpException('blog not found', HttpStatus.NOT_FOUND);
+  //
+  //   if (blog.blogOwnerInfo.userId !== req.user._id.toString())
+  //     throw new HttpException('created by another user', HttpStatus.FORBIDDEN);
+  //
+  //   await this.blogsService.banAndUnbanUserByBlog(params.userId, inputModel);
+  //   return;
+  // }
 
-    const blog = await this.blogsService.findBlogById(inputModel.blogId);
-    if (!blog) throw new HttpException('blog not found', HttpStatus.NOT_FOUND);
-
-    if (blog.blogOwnerInfo.userId !== req.user._id.toString())
-      throw new HttpException('created by another user', HttpStatus.FORBIDDEN);
-
-    await this.blogsService.banAndUnbanUserByBlog(params.userId, inputModel);
-    return;
-  }
-
-  @Get('blog/:blogId')
-  @UseGuards(JwtAuthGuard)
-  async getAllPostsByBlogId(
-    @Param() params: URIParamBlogDto,
-    @Query() query: QueryBannedUsersDto,
-    @Request() req,
-  ): Promise<ViewBannedUsersForBlogWithPaginationType> {
-    const blog = await this.blogsService.findBlogById(params.blogId);
-    if (!blog) throw new HttpException('blog not found', HttpStatus.NOT_FOUND);
-
-    if (blog.blogOwnerInfo.userId !== req.user._id.toString())
-      throw new HttpException('user not owner blog', HttpStatus.FORBIDDEN);
-
-    return await this.blogsQueryRepository.getAllBannedUserForBlog(
-      params.blogId,
-      query,
-    );
-  }
+  // @Get('blog/:blogId')
+  // @UseGuards(JwtAuthGuard)
+  // async getAllPostsByBlogId(
+  //   @Param() params: URIParamBlogDto,
+  //   @Query() query: QueryBannedUsersDto,
+  //   @Request() req,
+  // ): Promise<ViewBannedUsersForBlogWithPaginationType> {
+  //   const blog = await this.blogsService.findBlogById(params.blogId);
+  //   if (!blog) throw new HttpException('blog not found', HttpStatus.NOT_FOUND);
+  //
+  //   if (blog.blogOwnerInfo.userId !== req.user._id.toString())
+  //     throw new HttpException('user not owner blog', HttpStatus.FORBIDDEN);
+  //
+  //   return await this.blogsQueryRepository.getAllBannedUserForBlog(
+  //     params.blogId,
+  //     query,
+  //   );
+  // }
 }

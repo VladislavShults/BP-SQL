@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 
 export type BlogDBTypeWithoutBlogOwner = {
-  _id: ObjectId;
+  id: number;
   name: string;
   description: string;
   websiteUrl: string;
@@ -20,15 +20,12 @@ export type BannedUsersForBlogType = {
 };
 
 export type BlogDBType = {
-  _id: ObjectId;
+  id: number;
   name: string;
   description: string;
   websiteUrl: string;
   createdAt: Date;
-  blogOwnerInfo: {
-    userId: string;
-    userLogin: string;
-  };
+  userId: string;
   isBanned: boolean;
   banDate: Date;
   bannedUsers: string[];

@@ -22,7 +22,7 @@ export class CheckBlogInDBAndBlogOwnerGuard implements CanActivate {
     const request: Request = context.switchToHttp().getRequest();
 
     const user: UserDBType = request.user as UserDBType;
-    const userId = user._id.toString();
+    const userId = user.id.toString();
 
     if (request.params.blogId.length !== 24)
       throw new HttpException('Blog not found', HttpStatus.NOT_FOUND);
@@ -30,8 +30,8 @@ export class CheckBlogInDBAndBlogOwnerGuard implements CanActivate {
     const blog = await this.blogModel.findById(request.params.blogId);
     if (!blog) throw new HttpException('Blog not found', HttpStatus.NOT_FOUND);
 
-    if (userId !== blog.blogOwnerInfo.userId)
-      throw new HttpException('User not owner', HttpStatus.FORBIDDEN);
+    // if (userId !== blog.blogOwnerInfo.userId)
+    //   throw new HttpException('User not owner', HttpStatus.FORBIDDEN);
 
     return true;
   }

@@ -27,7 +27,7 @@ export class JwtAuthGuard implements CanActivate {
 
     const user = await this.dataSource.query(
       `
-    SELECT "UserId" as "userId", "Login" as "login"
+    SELECT "UserId" as "id", "Login" as "login"
     FROM public."Users"
     WHERE "UserId" = $1`,
       [userId],

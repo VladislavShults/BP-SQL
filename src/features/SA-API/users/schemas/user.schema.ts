@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { UserDBType } from '../types/users.types';
 
-export const UserSchema = new mongoose.Schema<UserDBType>(
+export const UserSchema = new mongoose.Schema(
   {
     login: String,
     email: String,

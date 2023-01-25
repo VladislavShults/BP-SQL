@@ -6,6 +6,7 @@ import { DataSource } from 'typeorm';
 @Injectable()
 export class DeviceRepository {
   constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
+
   async deleteDeviceSession(userId: string, deviceId: string) {
     await this.dataSource.query(
       `

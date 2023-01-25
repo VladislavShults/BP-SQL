@@ -32,7 +32,6 @@ import { IpRestrictionGuard } from '../../../../infrastructure/ip-restriction/gu
 import { Cookies } from '../decorators/cookies.decorator';
 import { CheckRefreshTokenInCookie } from '../guards/checkRefreshTokenInCookie';
 import { DevicesService } from '../../devices/application/devices.service';
-import { JWTAuthRefreshTokenGuard } from '../guards/JWT-auth-RefreshTokenGuard';
 import { JwtAuthGuard } from '../guards/JWT-auth.guard';
 
 @Controller('auth')
@@ -117,11 +116,11 @@ export class AuthController {
 
     const newAccessToken = await this.authService.createAccessToken(
       user.userId.toString(),
-      '10000',
+      '300000',
     );
     const newRefreshToken = await this.authService.createRefreshToken(
       user.userId.toString(),
-      '20000',
+      '200000',
     );
     await this.devicesService.saveDeviceInputInDB(
       newRefreshToken,
@@ -130,9 +129,9 @@ export class AuthController {
     );
     res
       .cookie('refreshToken', newRefreshToken, {
-        httpOnly: true,
-        secure: true,
-        maxAge: 20 * 1000,
+        httpOnly: false,
+        secure: false,
+        maxAge: 200 * 1000,
       })
       .status(200)
       .json({ accessToken: newAccessToken });
@@ -162,12 +161,12 @@ export class AuthController {
 
     const newAccessToken = await this.authService.createAccessToken(
       userIdFromRefreshToken.toString(),
-      '10000',
+      '300000',
     );
     const newRefreshToken = await this.jwtService.createRefreshJWT(
       userIdFromRefreshToken.toString(),
       deviceId.toString(),
-      '20000',
+      '200000',
     );
     await this.devicesService.changeRefreshTokenInDeviceSession(
       oldRefreshToken,
@@ -176,9 +175,9 @@ export class AuthController {
     );
     res
       .cookie('refreshToken', newRefreshToken, {
-        httpOnly: true,
-        secure: true,
-        maxAge: 20 * 1000,
+        httpOnly: false,
+        secure: false,
+        maxAge: 200 * 1000,
       })
       .status(200)
       .json({ accessToken: newAccessToken });

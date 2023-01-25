@@ -1,6 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { BannedUsersForBlogType, BlogDBType } from '../types/blogs.types';
+import { UserDBType } from '../../../SA-API/users/types/users.types';
+import { CreateBlogDto } from '../api/models/create-blog.dto';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class BlogsRepository {
@@ -9,6 +13,7 @@ export class BlogsRepository {
     private readonly bannedUserForBlogModel: Model<BannedUsersForBlogType>,
     @Inject('BLOG_MODEL')
     private readonly blogModel: Model<BlogDBType>,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
   getBlogById(blogId: string) {
     return this.blogModel.findById(blogId);
@@ -22,9 +27,24 @@ export class BlogsRepository {
     await blog.save();
   }
 
-  async createBlog(newBlog: Omit<BlogDBType, '_id'>): Promise<string> {
-    const blog = await this.blogModel.create(newBlog);
-    return blog._id.toString();
+  async createBlog(
+    createBlogDto: CreateBlogDto,
+    user: UserDBType,
+  ): Promise<string> {
+    const blogId = await this.dataSource.query(
+      `
+    INSERT INTO public."Blogs"(
+        "BlogName", "Description", "WebsiteUrl", "UserId")
+    VALUES ($1, $2, $3, $4)
+    RETURNING "BlogId"  as "blogId"`,
+      [
+        createBlogDto.name,
+        createBlogDto.description,
+        createBlogDto.websiteUrl,
+        user.id,
+      ],
+    );
+    return blogId[0].blogId;
   }
 
   async saveBannedUserForBlog(bannedUser: BannedUsersForBlogType) {

@@ -1,21 +1,9 @@
-import { ObjectId } from 'mongodb';
-
 export type UserDBType = {
-  _id: ObjectId;
+  id: number;
   login: string;
   email: string;
   createdAt: Date;
   passwordHash: string;
-  emailConfirmation: {
-    confirmationCode: string;
-    expirationDate: Date;
-    isConfirmed: boolean;
-  };
-  banInfo: {
-    isBanned: boolean;
-    banDate: Date | null;
-    banReason: string | null;
-  };
 };
 
 export type ViewUserType = {

@@ -1,5 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Model } from 'mongoose';
+import { Injectable } from '@nestjs/common';
 import { DevicesSecuritySessionType } from '../types/devices.types';
 import { JwtService } from '../../../../infrastructure/JWT-utility/jwt-service';
 import { DeviceRepository } from '../infrastructure/devices.repository';
@@ -10,8 +9,6 @@ import { extractUserIdFromRefreshToken } from '../../auth/helpers/extractUserIdF
 @Injectable()
 export class DevicesService {
   constructor(
-    @Inject('DEVICE_SECURITY_MODEL')
-    private readonly devicesSecurityModel: Model<DevicesSecuritySessionType>,
     private readonly jwtUtility: JwtService,
     private readonly deviceRepository: DeviceRepository,
   ) {}
@@ -37,13 +34,6 @@ export class DevicesService {
       await this.deviceRepository.getSessionByDeviceId(deviceId);
     if (sessionsByDeviceIdArray.length === 0) return null;
     else return sessionsByDeviceIdArray[0];
-  }
-
-  async terminateAllSessionByUserId(userId: string): Promise<boolean> {
-    const deleteSession = await this.devicesSecurityModel.deleteMany({
-      userId: userId,
-    });
-    return deleteSession.deletedCount > 0;
   }
 
   async deleteDeviceSession(refreshToken: string): Promise<void> {

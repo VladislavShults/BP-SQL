@@ -9,7 +9,7 @@ export class PostsRepository {
     @Inject('POST_MODEL')
     private readonly postModel: Model<PostDBType>,
   ) {}
-  async createPost(post: Omit<PostDBType, '_id'>): Promise<ObjectId> {
+  async createPost(post: Omit<PostDBType, 'id'>): Promise<ObjectId> {
     const newPost = await this.postModel.create(post);
     return newPost._id;
   }

@@ -34,20 +34,7 @@ export class BlogsService {
     createBlogDTO: CreateBlogDto,
     user: UserDBType,
   ): Promise<string> {
-    const newBlog: Omit<BlogDBType, '_id'> = {
-      name: createBlogDTO.name,
-      description: createBlogDTO.description,
-      websiteUrl: createBlogDTO.websiteUrl,
-      createdAt: new Date(),
-      blogOwnerInfo: {
-        userId: user._id.toString(),
-        userLogin: user.login,
-      },
-      isBanned: false,
-      banDate: null,
-      bannedUsers: [],
-    };
-    return this.blogsRepository.createBlog(newBlog);
+    return this.blogsRepository.createBlog(createBlogDTO, user);
   }
 
   createPostDTO(
@@ -66,11 +53,11 @@ export class BlogsService {
     return this.blogsRepository.getBlogById(blogId);
   }
 
-  async bindUserToBlog(blog: BlogDBType, user: UserDBType) {
-    blog.blogOwnerInfo.userId = user._id.toString();
-    blog.blogOwnerInfo.userLogin = user.login;
-    await this.blogsRepository.updateBlog(blog);
-  }
+  // async bindUserToBlog(blog: BlogDBType, user: UserDBType) {
+  //   blog.blogOwnerInfo.userId = user.id.toString();
+  //   blog.blogOwnerInfo.userLogin = user.login;
+  //   await this.blogsRepository.updateBlog(blog);
+  // }
 
   async banAndUnbanUserByBlog(userId: string, inputModel: BanUserForBlogDto) {
     const blog = await this.blogsRepository.getBlogById(inputModel.blogId);

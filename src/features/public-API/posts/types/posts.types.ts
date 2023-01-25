@@ -1,17 +1,14 @@
-import { ObjectId } from 'mongodb';
-
 export type PostDBType = {
-  _id: ObjectId;
+  id: number;
   title: string;
   shortDescription: string;
   content: string;
   blogId: string;
   blogName: string;
   createdAt: Date;
+  userId: string;
   likesCount: number;
   dislikesCount: number;
-  userId: string;
-  isBanned: boolean;
 };
 
 export type NewestLikesType = {

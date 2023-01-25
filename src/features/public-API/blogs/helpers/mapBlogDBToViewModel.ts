@@ -1,7 +1,7 @@
 import { BlogDBTypeWithoutBlogOwner, ViewBlogType } from '../types/blogs.types';
 
 export const mapBlog = (blog: BlogDBTypeWithoutBlogOwner): ViewBlogType => ({
-  id: blog._id.toString(),
+  id: blog.id.toString(),
   name: blog.name,
   description: blog.description,
   websiteUrl: blog.websiteUrl,

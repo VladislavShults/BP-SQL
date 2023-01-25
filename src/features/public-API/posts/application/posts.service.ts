@@ -24,7 +24,7 @@ export class PostsService {
     createPostDTO: CreatePostDto,
     userId: string,
   ): Promise<ObjectId> {
-    const post: Omit<PostDBType, '_id'> = {
+    const post: Omit<PostDBType, 'id'> = {
       title: createPostDTO.title,
       shortDescription: createPostDTO.shortDescription,
       content: createPostDTO.content,
@@ -35,7 +35,6 @@ export class PostsService {
       createdAt: new Date(),
       likesCount: 0,
       dislikesCount: 0,
-      isBanned: false,
       userId: userId,
     };
     return await this.postsRepository.createPost(post);

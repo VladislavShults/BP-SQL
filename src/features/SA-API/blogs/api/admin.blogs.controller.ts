@@ -29,20 +29,20 @@ export class AdminBlogsController {
     private readonly adminBlogQueryRepository: AdminBlogsQueryRepository,
   ) {}
 
-  @Put(':blogId/bind-with-user/:userId')
-  @HttpCode(204)
-  @UseGuards(BasicAuthGuard)
-  async bindUserToBlog(@Param() params: URIParamBindUserToBlog) {
-    const user = await this.usersService.findUserById(params.userId);
-    if (!user) throw new BadRequestException(createErrorMessage('userId'));
-
-    const blog = await this.blogsService.findBlogById(params.blogId);
-    if (!blog || blog.blogOwnerInfo.userId)
-      throw new BadRequestException(createErrorMessage('blogId'));
-
-    await this.blogsService.bindUserToBlog(blog, user);
-    return;
-  }
+  // @Put(':blogId/bind-with-user/:userId')
+  // @HttpCode(204)
+  // @UseGuards(BasicAuthGuard)
+  // async bindUserToBlog(@Param() params: URIParamBindUserToBlog) {
+  //   const user = await this.usersService.findUserById(params.userId);
+  //   if (!user) throw new BadRequestException(createErrorMessage('userId'));
+  //
+  //   const blog = await this.blogsService.findBlogById(params.blogId);
+  //   if (!blog || blog.blogOwnerInfo.userId)
+  //     throw new BadRequestException(createErrorMessage('blogId'));
+  //
+  //   await this.blogsService.bindUserToBlog(blog, user);
+  //   return;
+  // }
 
   @Get()
   @UseGuards(BasicAuthGuard)

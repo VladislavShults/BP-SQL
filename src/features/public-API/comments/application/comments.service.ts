@@ -25,7 +25,7 @@ export class CommentsService {
 
     const comment: Omit<CommentDBType, '_id'> = {
       content: inputModel.content,
-      userId: user._id.toString(),
+      userId: user.id.toString(),
       userLogin: user.login,
       createdAt: new Date(),
       postId: postId,
