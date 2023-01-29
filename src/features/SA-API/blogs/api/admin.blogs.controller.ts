@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
@@ -12,9 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { BasicAuthGuard } from '../../../public-API/auth/guards/basic-auth.guard';
-import { URIParamBindUserToBlog } from './models/URI-paramBindUserToBlog';
 import { UsersService } from '../../users/application/users.servive';
-import { createErrorMessage } from '../../../public-API/auth/helpers/create-error-message';
 import { BlogsService } from '../../../public-API/blogs/application/blogs.service';
 import { QueryBlogDto } from '../../../public-API/blogs/api/models/query-blog.dto';
 import { AdminBlogsQueryRepository } from './admin.blogs.query.repository';
@@ -60,7 +57,7 @@ export class AdminBlogsController {
     const blog = await this.blogsService.findBlogById(params.blogId);
     if (!blog) throw new HttpException('blog not found', HttpStatus.NOT_FOUND);
 
-    await this.blogsService.banAndUnbanBlog(params.blogId, inputModel.isBanned);
+    // await this.blogsService.banAndUnbanBlog(params.blogId, inputModel.isBanned);
     return;
   }
 }

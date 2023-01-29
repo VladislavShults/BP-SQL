@@ -5,6 +5,7 @@ import { UserDBType } from '../../../SA-API/users/types/users.types';
 import { CreateBlogDto } from '../api/models/create-blog.dto';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { UpdateBlogDto } from '../api/models/update-blog.dto';
 
 @Injectable()
 export class BlogsRepository {
@@ -21,10 +22,6 @@ export class BlogsRepository {
 
   deleteBlogById(blogId: string) {
     return this.blogModel.deleteOne({ _id: blogId });
-  }
-
-  async updateBlog(blog) {
-    await blog.save();
   }
 
   async createBlog(
@@ -62,6 +59,21 @@ export class BlogsRepository {
     await this.blogModel.updateOne(
       { _id: blogId },
       { $pull: { bannedUsers: userId } },
+    );
+  }
+
+  async updateBlog(blogId: string, updateBlogDTO: UpdateBlogDto) {
+    await this.dataSource.query(
+      `
+    UPDATE public."Blogs"
+    SET "BlogName"=$1, "Description"=$2, "WebsiteUrl"=$3
+    WHERE "BlogId" = $4;`,
+      [
+        updateBlogDTO.name,
+        updateBlogDTO.description,
+        updateBlogDTO.websiteUrl,
+        blogId,
+      ],
     );
   }
 }
