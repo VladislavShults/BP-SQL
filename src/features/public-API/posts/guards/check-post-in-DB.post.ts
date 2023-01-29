@@ -3,27 +3,31 @@ import {
   ExecutionContext,
   HttpException,
   HttpStatus,
-  Inject,
   Injectable,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { Model } from 'mongoose';
-import { PostDBType } from '../types/posts.types';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class CheckPostInDBGuard implements CanActivate {
-  constructor(
-    @Inject('POST_MODEL')
-    private readonly postModel: Model<PostDBType>,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: Request = context.switchToHttp().getRequest();
+
     const params = request.params;
-    if (params.postId.length !== 24)
+
+    const postArray = await this.dataSource.query(
+      `
+    SELECT "PostId", "IsDeleted"
+    FROM public."Posts"
+    WHERE "PostId" = $1 AND "BlogId" = $2 AND "IsDeleted" = false`,
+      [params.postId, params.blogId],
+    );
+
+    if (postArray.length === 0)
       throw new HttpException('POST NOT FOUND', HttpStatus.NOT_FOUND);
-    const post = await this.postModel.findById(params.postId);
-    if (!post) throw new HttpException('POST NOT FOUND', HttpStatus.NOT_FOUND);
     return true;
   }
 }

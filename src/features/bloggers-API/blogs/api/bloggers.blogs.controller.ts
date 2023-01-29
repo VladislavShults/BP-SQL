@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   HttpCode,
-  HttpException,
   HttpStatus,
   Param,
   Post,
@@ -20,7 +19,6 @@ import { UpdateBlogDto } from '../../../public-API/blogs/api/models/update-blog.
 import { CreateBlogDto } from '../../../public-API/blogs/api/models/create-blog.dto';
 import { ViewBlogType } from '../../../public-API/blogs/types/blogs.types';
 import { UserDBType } from '../../../SA-API/users/types/users.types';
-import { BloggersBlogsQueryRepository } from './bloggers.blogs.query.repository';
 import { QueryBlogDto } from '../../../public-API/blogs/api/models/query-blog.dto';
 import { CreatePostBySpecificBlogDto } from '../../../public-API/blogs/api/models/create-postBySpecificBlog.dto';
 import { ViewPostType } from '../../../public-API/posts/types/posts.types';
@@ -34,6 +32,7 @@ import { BlogsService } from '../../../public-API/blogs/application/blogs.servic
 import { CommentsQueryRepository } from '../../../public-API/comments/api/comments.query.repository';
 import { ViewAllCommentsForAllPostsWithPaginationType } from '../../../public-API/comments/types/comments.types';
 import { QueryCommentDto } from '../../../public-API/comments/api/models/query-comment.dto';
+import { BlogsQueryRepository } from '../../../public-API/blogs/api/blogs.query.repository';
 
 @Controller('blogger/blogs')
 export class BloggersBlogsController {
@@ -41,7 +40,7 @@ export class BloggersBlogsController {
     private readonly blogsService: BlogsService,
     private readonly postsService: PostsService,
     private readonly postsQueryRepository: PostsQueryRepository,
-    private readonly blogsQueryRepository: BloggersBlogsQueryRepository,
+    private readonly blogsQueryRepository: BlogsQueryRepository,
     private readonly commentsQueryRepository: CommentsQueryRepository,
   ) {}
   @Delete(':blogId')
@@ -80,30 +79,34 @@ export class BloggersBlogsController {
   @UseGuards(JwtAuthGuard)
   async getBlogs(@Query() query: QueryBlogDto, @Request() req) {
     const userId: string = req.user._id.toString();
-    return await this.blogsQueryRepository.getBlogs(query, userId);
+    return await this.blogsQueryRepository.getBlogs(
+      query.searchNameTerm,
+      Number(query.pageNumber),
+      Number(query.pageSize),
+      query.sortBy,
+      query.sortDirection,
+      userId,
+    );
   }
 
-  // @Post(':blogId/posts')
-  // @HttpCode(201)
-  // @UseGuards(JwtAuthGuard, CheckBlogInDBAndBlogOwnerGuard)
-  // async createPostForSpecificBlog(
-  //   @Param() params: URIParamBlogDto,
-  //   @Body() inputModel: CreatePostBySpecificBlogDto,
-  // ): Promise<ViewPostType> {
-  //   const createPostDTO = this.blogsService.createPostDTO(
-  //     params.blogId,
-  //     inputModel,
-  //   );
-  //
-  //   const blog = await this.blogsService.findBlogById(params.blogId);
-  //
-  //   const postObjectId = await this.postsService.createPost(
-  //     createPostDTO,
-  //     blog.blogOwnerInfo.userId,
-  //   );
-  //
-  //   return await this.postsQueryRepository.getPostById(postObjectId.toString());
-  // }
+  @Post(':blogId/posts')
+  @HttpCode(201)
+  @UseGuards(JwtAuthGuard, CheckBlogInDBAndBlogOwnerGuard)
+  async createPostForSpecificBlog(
+    @Param() params: URIParamBlogDto,
+    @Body() inputModel: CreatePostBySpecificBlogDto,
+    @Request() req,
+  ): Promise<ViewPostType> {
+    const userId: string = req.user.id;
+
+    const createPostAndReturnId = await this.postsService.createPost(
+      params.blogId,
+      inputModel,
+      userId,
+    );
+
+    return await this.postsQueryRepository.getPostById(createPostAndReturnId);
+  }
 
   @Put(':blogId/posts/:postId')
   @HttpCode(204)
@@ -112,8 +115,7 @@ export class BloggersBlogsController {
     @Param() params: URIParamsUpdateDto,
     @Body() inputModel: UpdatePostByBlogIdDto,
   ): Promise<HttpStatus> {
-    const updateModel = this.postsService.createUpdateModel(params, inputModel);
-    await this.postsService.updatePost(params.postId, updateModel);
+    await this.postsService.updatePost(params.postId, inputModel);
     return;
   }
 
@@ -123,12 +125,10 @@ export class BloggersBlogsController {
   async deletePostById(
     @Param() params: URIParamsDeleteDto,
   ): Promise<HttpStatus> {
-    const result = await this.postsService.deletePostByIdForBlogId(
+    await this.postsService.deletePostByIdForBlogId(
       params.postId,
       params.blogId,
     );
-    if (!result)
-      throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
     return;
   }
 

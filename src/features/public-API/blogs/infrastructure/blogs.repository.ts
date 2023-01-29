@@ -16,9 +16,6 @@ export class BlogsRepository {
     private readonly blogModel: Model<BlogDBType>,
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
-  getBlogById(blogId: string) {
-    return this.blogModel.findById(blogId);
-  }
 
   async deleteBlogById(blogId: string) {
     await this.dataSource.query(

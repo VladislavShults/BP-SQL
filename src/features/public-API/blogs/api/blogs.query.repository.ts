@@ -25,13 +25,16 @@ export class BlogsQueryRepository {
   ) {}
 
   async findBlogById(blogId: string): Promise<ViewBlogType | null> {
-    if (blogId.length !== 24) return null;
-    const blogDBType = await this.blogModel.findOne({
-      _id: blogId,
-      isBanned: false,
-    });
+    const blogDBType = await this.dataSource.query(
+      `
+    SELECT "BlogId" as "id", "BlogName" as "name", "Description" as "description",
+            "WebsiteUrl" as "websiteUrl", "CreatedAt" as "createdAt"
+    FROM public."Blogs"
+    WHERE "BlogId" = $1;`,
+      [blogId],
+    );
     if (!blogDBType) return null;
-    return mapBlogById(blogDBType);
+    return mapBlogById(blogDBType[0]);
   }
 
   async getBlogs(
@@ -40,6 +43,7 @@ export class BlogsQueryRepository {
     pageSize: number,
     sortBy: string,
     sortDirection: 'asc' | 'desc',
+    userId?: string,
   ): Promise<ViewBlogsTypeWithPagination> {
     const itemsDB: BlogDBTypeWithoutBlogOwner[] = await this.dataSource.query(
       `

@@ -127,11 +127,11 @@ export class PostsController {
     @Request() req,
   ) {
     const user = req.user;
-    await this.postsService.makeLikeOrUnlike(
-      params.postId,
-      user,
-      inputModel.likeStatus,
-    );
+    // await this.postsService.makeLikeOrUnlike(
+    //   params.postId,
+    //   user,
+    //   inputModel.likeStatus,
+    // );
     return;
   }
 }

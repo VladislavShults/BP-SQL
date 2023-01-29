@@ -1,5 +1,4 @@
-import { IsBoolean, IsString, Length, Validate } from 'class-validator';
-import { BlogId } from '../../../../public-API/blogs/validation/blogId-validation';
+import { IsBoolean, IsString, Length } from 'class-validator';
 
 export class BanUserForBlogDto {
   @IsBoolean()

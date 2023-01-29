@@ -1,18 +1,18 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PostDBType } from '../types/posts.types';
 import { Model } from 'mongoose';
-import { ObjectId } from 'mongodb';
+import { CreatePostBySpecificBlogDto } from '../../blogs/api/models/create-postBySpecificBlog.dto';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { UpdatePostByBlogIdDto } from '../../../bloggers-API/blogs/api/models/update-postByBlogId.dto';
 
 @Injectable()
 export class PostsRepository {
   constructor(
     @Inject('POST_MODEL')
     private readonly postModel: Model<PostDBType>,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
-  async createPost(post: Omit<PostDBType, 'id'>): Promise<ObjectId> {
-    const newPost = await this.postModel.create(post);
-    return newPost._id;
-  }
 
   async getPostById(postId: string) {
     const post = await this.postModel.findById(postId);
@@ -20,20 +20,14 @@ export class PostsRepository {
     return post;
   }
 
-  async updatePost(post): Promise<boolean> {
-    const result = await post.save();
-    return result.modifiedPaths.length > 0;
-  }
-
-  async deletePostByIdForBlogId(
-    postId: string,
-    blogId: string,
-  ): Promise<boolean> {
-    const result = await this.postModel.deleteOne({
-      _id: postId,
-      blogId: blogId,
-    });
-    return result.deletedCount > 0;
+  async deletePostByIdForBlogId(postId: string, blogId: string): Promise<void> {
+    await this.dataSource.query(
+      `
+    UPDATE public."Posts"
+    SET  "IsDeleted"=true
+    WHERE "PostId"=$1 AND "BlogId"=$2;`,
+      [postId, blogId],
+    );
   }
 
   async banPosts(userId: string) {
@@ -54,6 +48,44 @@ export class PostsRepository {
     await this.postModel.updateMany(
       { blogId: blogId },
       { $set: { isBanned: banStatus } },
+    );
+  }
+
+  async createPost(
+    blogId: string,
+    inputModel: CreatePostBySpecificBlogDto,
+    userId: string,
+  ): Promise<string> {
+    const idArr = await this.dataSource.query(
+      `
+    INSERT INTO public."Posts"(
+            "Title", "ShortDescription", "Content", "BlogId", "userId")
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING "PostId" as "id";`,
+      [
+        inputModel.title,
+        inputModel.shortDescription,
+        inputModel.content,
+        blogId,
+        userId,
+      ],
+    );
+    return idArr[0].id;
+  }
+
+  async updatePost(postId: string, inputModel: UpdatePostByBlogIdDto) {
+    await this.dataSource.query(
+      `
+    UPDATE public."Posts"
+    SET "Title"=$1, "ShortDescription"=$2, "Content"=$3
+    WHERE "PostId" = $4
+    AND "IsDeleted" = false;`,
+      [
+        inputModel.title,
+        inputModel.shortDescription,
+        inputModel.content,
+        postId,
+      ],
     );
   }
 }

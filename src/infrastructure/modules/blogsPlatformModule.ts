@@ -37,7 +37,6 @@ import { SecurityController } from '../../features/public-API/devices/api/device
 import { DevicesService } from '../../features/public-API/devices/application/devices.service';
 import { DevicesQueryRepository } from '../../features/public-API/devices/api/devices.query.repository';
 import { BloggersBlogsController } from '../../features/bloggers-API/blogs/api/bloggers.blogs.controller';
-import { BloggersBlogsQueryRepository } from '../../features/bloggers-API/blogs/api/bloggers.blogs.query.repository';
 import { AdminBlogsController } from '../../features/SA-API/blogs/api/admin.blogs.controller';
 import { AdminBlogsQueryRepository } from '../../features/SA-API/blogs/api/admin.blogs.query.repository';
 import { bannedUsersForBlogMongooseConnection } from '../../features/bloggers-API/users/bannedUsersForBlogMongooseConnection';
@@ -65,7 +64,6 @@ import { DeviceRepository } from '../../features/public-API/devices/infrastructu
     BlogsService,
     BlogsRepository,
     BlogsQueryRepository,
-    BloggersBlogsQueryRepository,
     AdminBlogsQueryRepository,
     CommentsService,
     CommentsRepository,

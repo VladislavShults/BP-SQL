@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import {
-  NewestLikesType,
   PostDBType,
   ViewPostsTypeWithPagination,
   ViewPostType,
@@ -26,43 +25,21 @@ export class PostsQueryRepository {
     postId: string,
     userId?: string,
   ): Promise<ViewPostType | null> {
-    if (postId.length !== 24) return null;
-    const postDBType = await this.postModel.findOne({
-      _id: postId,
-      isBanned: false,
-    });
-    if (!postDBType) return null;
-    const post = mapPost(postDBType);
+    const postDBType = await this.dataSource.query(
+      `
+    SELECT "PostId" as "id", "Title" as "title", "ShortDescription" as "shortDescription", 
+            "Content" as "content", p."BlogId" as "blogId", b."BlogName" as "blogName", p."CreatedAt" as "createdAt" 
+    FROM public."Posts" p
+    JOIN public."Blogs" b
+    ON p."BlogId" = b."BlogId"
+    WHERE p."IsDeleted" = false
+    AND p."PostId" = $1`,
+      [postId],
+    );
 
-    let myLikeOrDislike: LikeDBType | null = null;
+    if (postDBType.length === 0) return null;
 
-    const threeNewestLikes: NewestLikesType[] = await this.likesModel
-      .find({
-        idObject: postId,
-        postOrComment: 'post',
-        status: 'Like',
-        isBanned: false,
-      })
-      .sort({ addedAt: -1 })
-      .select('-_id -idObject -status -postOrComment')
-      .limit(3)
-      .lean();
-
-    if (threeNewestLikes.length > 0)
-      post.extendedLikesInfo.newestLikes = threeNewestLikes;
-
-    if (userId) {
-      myLikeOrDislike = await this.likesModel
-        .findOne({
-          idObject: postId,
-          postOrComment: 'post',
-          userId: userId,
-          isBanned: false,
-        })
-        .lean();
-    }
-    if (myLikeOrDislike)
-      post.extendedLikesInfo.myStatus = myLikeOrDislike.status;
+    const post = mapPost(postDBType[0]);
 
     return post;
   }

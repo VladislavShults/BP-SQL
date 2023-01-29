@@ -3,8 +3,6 @@ import { BlogsRepository } from '../infrastructure/blogs.repository';
 import { UpdateBlogDto } from '../api/models/update-blog.dto';
 import { CreateBlogDto } from '../api/models/create-blog.dto';
 import { UserDBType } from '../../../SA-API/users/types/users.types';
-import { CreatePostBySpecificBlogDto } from '../api/models/create-postBySpecificBlog.dto';
-import { CreatePostDto } from '../../posts/api/models/create-post.dto';
 
 @Injectable()
 export class BlogsService {
@@ -25,22 +23,6 @@ export class BlogsService {
     user: UserDBType,
   ): Promise<string> {
     return this.blogsRepository.createBlog(createBlogDTO, user);
-  }
-
-  createPostDTO(
-    blogId: string,
-    inputModel: CreatePostBySpecificBlogDto,
-  ): CreatePostDto {
-    return {
-      title: inputModel.title,
-      shortDescription: inputModel.shortDescription,
-      content: inputModel.content,
-      blogId: blogId,
-    };
-  }
-
-  async findBlogById(blogId: string) {
-    return this.blogsRepository.getBlogById(blogId);
   }
 
   // async bindUserToBlog(blog: BlogDBType, user: UserDBType) {
