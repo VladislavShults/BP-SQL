@@ -116,7 +116,7 @@ export class AuthController {
 
     const newAccessToken = await this.authService.createAccessToken(
       user.userId.toString(),
-      '300000',
+      '30000000',
     );
     const newRefreshToken = await this.authService.createRefreshToken(
       user.userId.toString(),

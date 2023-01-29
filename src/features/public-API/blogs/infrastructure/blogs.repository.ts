@@ -20,8 +20,14 @@ export class BlogsRepository {
     return this.blogModel.findById(blogId);
   }
 
-  deleteBlogById(blogId: string) {
-    return this.blogModel.deleteOne({ _id: blogId });
+  async deleteBlogById(blogId: string) {
+    await this.dataSource.query(
+      `
+    UPDATE public."Blogs"
+    SET "IsDeleted"=true
+    WHERE "BlogId" = $1;`,
+      [blogId],
+    );
   }
 
   async createBlog(

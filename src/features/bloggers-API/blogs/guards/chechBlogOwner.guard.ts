@@ -22,9 +22,9 @@ export class CheckBlogInDBAndBlogOwnerGuard implements CanActivate {
 
     const blogArray = await this.dataSource.query(
       `
-    SELECT "BlogId", "BlogName", "Description", "WebsiteUrl", "CreatedAt", "UserId" as "userId"
+    SELECT "BlogId", "BlogName", "Description", "WebsiteUrl", "CreatedAt", "UserId" as "userId", "IsDeleted"
     FROM public."Blogs"
-    WHERE "BlogId" = $1`,
+    WHERE "BlogId" = $1 AND "IsDeleted" = false`,
       [request.params.blogId],
     );
     if (blogArray.length === 0)
