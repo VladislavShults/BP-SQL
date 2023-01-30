@@ -34,7 +34,6 @@ export type BlogDBType = {
   userId: string;
   isBanned: boolean;
   banDate: Date;
-  bannedUsers: string[];
 };
 
 export type ViewBlogType = {

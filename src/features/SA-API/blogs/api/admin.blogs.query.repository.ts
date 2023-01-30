@@ -1,19 +1,14 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { QueryBlogDto } from '../../../public-API/blogs/api/models/query-blog.dto';
-import { Model } from 'mongoose';
 import { BlogDBType } from '../../../public-API/blogs/types/blogs.types';
-import {
-  ViewBlogsTypeWithUserOwnerPagination,
-  ViewBlogWithUserOwnerType,
-} from '../types/admin.blogs.types';
+import { ViewBlogsTypeWithUserOwnerPagination } from '../types/admin.blogs.types';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { mapBlogUserOwner } from '../helpers/mapBlogUserOwner';
 
 @Injectable()
 export class AdminBlogsQueryRepository {
-  constructor(
-    @Inject('BLOG_MODEL')
-    private readonly blogModel: Model<BlogDBType>,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async getBlogs(
     query: QueryBlogDto,
@@ -22,32 +17,43 @@ export class AdminBlogsQueryRepository {
     const pageNumber: number = Number(query.pageNumber) || 1;
     const pageSize: number = Number(query.pageSize) || 10;
     const sortBy: string = query.sortBy || 'createdAt';
-    const sortDirection: 'asc' | 'desc' = query.sortDirection || 'desc';
+    const sortDirection = query.sortDirection || 'desc';
 
-    const itemsDBType: BlogDBType[] = await this.blogModel
-      .find({
-        // isBanned: false,
-        name: { $regex: searchNameTerm, $options: 'i' },
-      })
-      .skip((pageNumber - 1) * pageSize)
-      .limit(pageSize)
-      .sort([[sortBy, sortDirection]])
-      .lean();
+    const itemsDB: [BlogDBType & { login: string }] =
+      await this.dataSource.query(
+        `
+    SELECT "BlogId" as "id", "BlogName" as "name", "Description" as "description", "WebsiteUrl" as "websiteUrl",
+            b."CreatedAt" as "createdAt"
+    FROM public."Blogs" b
+    JOIN public. "Users" u
+    ON b."UserId" = u."UserId"
+    JOIN public. "BanInfo" bi
+    ON b."UserId" = bi."UserId"
+    WHERE b."IsDeleted" = false AND LOWER ("BlogName") LIKE $1
+    ORDER BY ${'"' + sortBy + '"'} ${sortDirection}
+    LIMIT ${pageSize} OFFSET ${(pageNumber - 1) * pageSize};`,
+        ['%' + searchNameTerm.toLocaleLowerCase() + '%'],
+      );
 
-    const items: ViewBlogWithUserOwnerType[] = itemsDBType.map((i) =>
-      mapBlogUserOwner(i),
+    const items = itemsDB.map((i) => mapBlogUserOwner(i));
+
+    const totalCount = await this.dataSource.query(
+      `
+    SELECT COUNT(*)
+    FROM public."Blogs" b
+    JOIN public. "Users" u
+    ON b."UserId" = u."UserId"
+    JOIN public. "BanInfo" bi
+    ON b."UserId" = bi."UserId"
+    WHERE b."IsDeleted" = false AND LOWER ("BlogName") LIKE $1`,
+      ['%' + searchNameTerm.toLocaleLowerCase() + '%'],
     );
 
-    const totalCount = await this.blogModel.count({
-      // isBanned: false,
-      name: { $regex: searchNameTerm, $options: 'i' },
-    });
-
     return {
-      pagesCount: Math.ceil(totalCount / pageSize),
+      pagesCount: Math.ceil(totalCount[0].count / pageSize),
       page: pageNumber,
       pageSize: pageSize,
-      totalCount,
+      totalCount: Number(totalCount[0].count),
       items,
     };
   }

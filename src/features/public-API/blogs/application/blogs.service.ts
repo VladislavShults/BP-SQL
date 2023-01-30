@@ -55,22 +55,17 @@ export class BlogsService {
     }
   }
 
-  // async banAndUnbanBlog(blogId: string, banStatus: boolean) {
-  //   const blog = await this.blogsRepository.getBlogById(blogId);
-  //
-  //   if (blog.isBanned === banStatus) return;
-  //
-  //   if (banStatus === true) {
-  //     blog.isBanned = banStatus;
-  //     blog.banDate = new Date();
-  //     await this.blogsRepository.updateBlog(blog);
-  //   } else {
-  //     blog.isBanned = banStatus;
-  //     blog.banDate = null;
-  //     await this.blogsRepository.updateBlog(blog);
-  //   }
-  //
-  //   await this.postsService.banAndUnbanPostsByBlog(blogId, banStatus);
-  //   return;
-  // }
+  async banAndUnbanBlog(blogId: string, banStatus: boolean) {
+    const blog = await this.blogsQueryRepository.getBanAndUnbanBlogById(blogId);
+
+    if (blog.isBanned === banStatus) return;
+
+    if (banStatus === true) {
+      await this.blogsRepository.banOrUnbanBlog(blogId, banStatus, new Date());
+    } else {
+      await this.blogsRepository.banOrUnbanBlog(blogId, banStatus, null);
+    }
+
+    return;
+  }
 }

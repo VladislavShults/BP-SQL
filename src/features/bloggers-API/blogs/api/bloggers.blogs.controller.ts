@@ -78,15 +78,8 @@ export class BloggersBlogsController {
   @Get()
   @UseGuards(JwtAuthGuard)
   async getBlogs(@Query() query: QueryBlogDto, @Request() req) {
-    const userId: string = req.user._id.toString();
-    return await this.blogsQueryRepository.getBlogs(
-      query.searchNameTerm,
-      Number(query.pageNumber),
-      Number(query.pageSize),
-      query.sortBy,
-      query.sortDirection,
-      userId,
-    );
+    const userId: string = req.user.id.toString();
+    return await this.blogsQueryRepository.getBlogs(query, userId);
   }
 
   @Post(':blogId/posts')

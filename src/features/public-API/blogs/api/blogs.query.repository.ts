@@ -1,9 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Model } from 'mongoose';
+import { Injectable } from '@nestjs/common';
 import {
   BannedUsersForBlogDBType,
   BannedUsersForBlogViewType,
-  BlogDBType,
   BlogDBTypeWithoutBlogOwner,
   ViewBannedUsersForBlogWithPaginationType,
   ViewBlogsTypeWithPagination,
@@ -17,16 +15,11 @@ import {
 import { QueryBannedUsersDto } from '../../../bloggers-API/users/api/models/query-banned-users.dto';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { QueryBlogDto } from './models/query-blog.dto';
 
 @Injectable()
 export class BlogsQueryRepository {
-  constructor(
-    @Inject('BLOG_MODEL')
-    private readonly blogModel: Model<BlogDBType>,
-    @Inject('BANNED_USER_FOR_BLOG_MODEL')
-    private readonly bannedUserForBlogModel: Model<BannedUsersForBlogDBType>,
-    @InjectDataSource() private readonly dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async findBlogById(blogId: string): Promise<ViewBlogType | null> {
     const blogDBType = await this.getBlogByIdDBType(blogId);
@@ -41,13 +34,26 @@ export class BlogsQueryRepository {
   }
 
   async getBlogs(
-    searchNameTerm: string,
-    pageNumber: number,
-    pageSize: number,
-    sortBy: string,
-    sortDirection: 'asc' | 'desc',
+    query: QueryBlogDto,
     userId?: string,
   ): Promise<ViewBlogsTypeWithPagination> {
+    const searchNameTerm: string = query.searchNameTerm || '';
+    const pageNumber: number = Number(query.pageNumber) || 1;
+    const pageSize: number = Number(query.pageSize) || 10;
+    const sortBy: string = query.sortBy || 'createdAt';
+    const sortDirection = query.sortDirection || 'desc';
+
+    let stringWhere =
+      'WHERE b."IsBanned" = false AND b."IsDeleted" = false AND LOWER ("BlogName") LIKE $1';
+
+    const arrayParam = ['%' + searchNameTerm.toLocaleLowerCase() + '%'];
+
+    if (userId) {
+      stringWhere =
+        'WHERE b."IsBanned" = false AND b."IsDeleted" = false AND LOWER ("BlogName") LIKE $1 AND b."UserId" = $2';
+      arrayParam.push(userId);
+    }
+
     const itemsDB: BlogDBTypeWithoutBlogOwner[] = await this.dataSource.query(
       `
     SELECT "BlogId" as "id", "BlogName" as "name", "Description" as "description", "WebsiteUrl" as "websiteUrl",
@@ -57,10 +63,10 @@ export class BlogsQueryRepository {
     ON b."UserId" = u."UserId"
     JOIN public. "BanInfo" bi
     ON b."UserId" = bi."UserId"
-    WHERE bi."IsBanned" = false AND u."IsDeleted" = false AND LOWER ("BlogName") LIKE $1
+    ${stringWhere}
     ORDER BY ${'"' + sortBy + '"'} ${sortDirection}
     LIMIT ${pageSize} OFFSET ${(pageNumber - 1) * pageSize};`,
-      ['%' + searchNameTerm.toLocaleLowerCase() + '%'],
+      arrayParam,
     );
 
     const items = itemsDB.map((i) => mapBlog(i));
@@ -73,22 +79,17 @@ export class BlogsQueryRepository {
     ON b."UserId" = u."UserId"
     JOIN public. "BanInfo" bi
     ON b."UserId" = bi."UserId"
-    WHERE bi."IsBanned" = false AND u."IsDeleted" = false AND LOWER ("BlogName") LIKE $1`,
-      ['%' + searchNameTerm.toLocaleLowerCase() + '%'],
+    ${stringWhere}`,
+      arrayParam,
     );
 
     return {
       pagesCount: Math.ceil(totalCount[0].count / pageSize),
       page: pageNumber,
       pageSize: pageSize,
-      totalCount: totalCount[0].count,
+      totalCount: Number(totalCount[0].count),
       items,
     };
-  }
-
-  async getLoginBloggerByBlogId(blogId: string): Promise<string> {
-    const blog = await this.blogModel.findById(blogId);
-    return blog.name;
   }
 
   async getAllBannedUserForBlog(
@@ -157,14 +158,20 @@ export class BlogsQueryRepository {
     };
   }
 
-  private async getBlogByIdDBType(blogId: string) {
+  private async getBlogByIdDBType(blogId: string, isBanned?: boolean) {
+    let stringWhere =
+      'WHERE "BlogId" = $1 AND "IsDeleted" = false AND "IsBanned" = false;';
+    if (isBanned) {
+      stringWhere = 'WHERE "BlogId" = $1 AND "IsDeleted" = false;';
+    }
+
     try {
       const array = await this.dataSource.query(
         `
     SELECT "BlogId" as "id", "BlogName" as "name", "Description" as "description",
-            "WebsiteUrl" as "websiteUrl", "CreatedAt" as "createdAt", "UserId" as "userId"
+            "WebsiteUrl" as "websiteUrl", "CreatedAt" as "createdAt", "UserId" as "userId", "IsBanned" as "isBanned"
     FROM public."Blogs"
-    WHERE "BlogId" = $1 AND "IsDeleted" = false;`,
+    ${stringWhere}`,
         [blogId],
       );
 
@@ -173,5 +180,9 @@ export class BlogsQueryRepository {
     } catch (error) {
       return null;
     }
+  }
+
+  async getBanAndUnbanBlogById(blogId: string) {
+    return await this.getBlogByIdDBType(blogId, true);
   }
 }

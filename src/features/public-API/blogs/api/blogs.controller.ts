@@ -34,19 +34,7 @@ export class BlogsController {
 
   @Get()
   async getBlogs(@Query() query: QueryBlogDto) {
-    const searchNameTerm: string = query.searchNameTerm || '';
-    const pageNumber: number = Number(query.pageNumber) || 1;
-    const pageSize: number = Number(query.pageSize) || 10;
-    const sortBy: string = query.sortBy || 'createdAt';
-    const sortDirection: 'asc' | 'desc' = query.sortDirection || 'desc';
-
-    return await this.blogsQueryRepository.getBlogs(
-      searchNameTerm,
-      pageNumber,
-      pageSize,
-      sortBy,
-      sortDirection,
-    );
+    return await this.blogsQueryRepository.getBlogs(query);
   }
 
   @Get(':blogId/posts')

@@ -59,7 +59,7 @@ export class AdminBlogsController {
     const blog = await this.blogQueryRepository.findBlogById(params.blogId);
     if (!blog) throw new HttpException('blog not found', HttpStatus.NOT_FOUND);
 
-    // await this.blogsService.banAndUnbanBlog(params.blogId, inputModel.isBanned);
+    await this.blogsService.banAndUnbanBlog(params.blogId, inputModel.isBanned);
     return;
   }
 }
