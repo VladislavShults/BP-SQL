@@ -28,7 +28,6 @@ import { InfoAboutMeType } from '../types/info-about-me-type';
 import { CheckDuplicatedLoginGuard } from '../guards/check-duplicated-login.guard';
 import { CheckUserAndHisPasswordInDB } from '../guards/checkUserAndHisPasswordInDB';
 import { UsersForCheckInDB } from '../../../SA-API/users/types/users.types';
-import { IpRestrictionGuard } from '../../../../infrastructure/ip-restriction/guards/ip-restriction.guard';
 import { Cookies } from '../decorators/cookies.decorator';
 import { CheckRefreshTokenInCookie } from '../guards/checkRefreshTokenInCookie';
 import { DevicesService } from '../../devices/application/devices.service';
@@ -48,7 +47,7 @@ export class AuthController {
   @Post('registration')
   @HttpCode(204)
   @UseGuards(
-    IpRestrictionGuard,
+    // IpRestrictionGuard,
     CheckDuplicatedEmailGuard,
     CheckDuplicatedLoginGuard,
   )
@@ -64,7 +63,7 @@ export class AuthController {
   }
 
   @Post('registration-confirmation')
-  @UseGuards(IpRestrictionGuard)
+  // @UseGuards(IpRestrictionGuard)
   @HttpCode(204)
   async registrationConfirmation(
     @Body()
@@ -82,7 +81,7 @@ export class AuthController {
   }
 
   @Post('registration-email-resending')
-  @UseGuards(IpRestrictionGuard)
+  // @UseGuards(IpRestrictionGuard)
   @HttpCode(204)
   async registrationEmailResending(
     @Body() inputModel: RegistrationEmailResendingAuthDto,
@@ -103,7 +102,10 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(200)
-  @UseGuards(IpRestrictionGuard, CheckUserAndHisPasswordInDB)
+  @UseGuards(
+    // IpRestrictionGuard,
+    CheckUserAndHisPasswordInDB,
+  )
   async login(
     @Body() inputModel: LoginAuthDto,
     @Request() req,
@@ -184,7 +186,7 @@ export class AuthController {
   }
 
   @Post('password-recovery')
-  @UseGuards(IpRestrictionGuard)
+  // @UseGuards(IpRestrictionGuard)
   @HttpCode(204)
   async passwordRecovery(@Body() inputModel: EmailAuthDto) {
     const email = inputModel.email;
@@ -199,7 +201,7 @@ export class AuthController {
   }
 
   @Post('new-password')
-  @UseGuards(IpRestrictionGuard)
+  // @UseGuards(IpRestrictionGuard)
   @HttpCode(204)
   async newPassword(@Body() inputModel: NewPasswordAuthDto) {
     const userByConfirmationCode =

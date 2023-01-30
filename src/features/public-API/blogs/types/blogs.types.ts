@@ -1,5 +1,3 @@
-import { ObjectId } from 'mongodb';
-
 export type BlogDBTypeWithoutBlogOwner = {
   id: number;
   name: string;
@@ -8,7 +6,15 @@ export type BlogDBTypeWithoutBlogOwner = {
   createdAt: Date;
 };
 
-export type BannedUsersForBlogType = {
+export type BannedUsersForBlogDBType = {
+  userId: string;
+  isBanned: boolean;
+  banDate: Date;
+  banReason: string;
+  blogId: string;
+};
+
+export type BannedUsersForBlogViewType = {
   id: string;
   login: string;
   banInfo: {
@@ -16,7 +22,6 @@ export type BannedUsersForBlogType = {
     banDate: Date;
     banReason: string;
   };
-  blogId: string;
 };
 
 export type BlogDBType = {
@@ -60,5 +65,5 @@ export type ViewBannedUsersForBlogWithPaginationType = {
   page: number;
   pageSize: number;
   totalCount: number;
-  items: Omit<BannedUsersForBlogType, 'blogId'>[];
+  items: BannedUsersForBlogViewType[];
 };

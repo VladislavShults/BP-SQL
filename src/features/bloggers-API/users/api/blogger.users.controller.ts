@@ -33,16 +33,15 @@ export class BloggerUsersController {
     @Request() req,
   ): Promise<HttpStatus> {
     const user = await this.usersService.findUserById(params.userId);
-    if (user.length === 0)
-      throw new HttpException('user not found', HttpStatus.NOT_FOUND);
+    if (!user) throw new HttpException('user not found', HttpStatus.NOT_FOUND);
 
-    const blog = await this.blogsQueryRepository.findBlogById(
+    const blog = await this.blogsQueryRepository.findBlogByIdWithUserId(
       inputModel.blogId,
     );
 
     if (!blog) throw new HttpException('blog not found', HttpStatus.NOT_FOUND);
 
-    if (blog.blogOwnerInfo.userId !== req.user._id.toString())
+    if (blog.userId !== req.user.id.toString())
       throw new HttpException('created by another user', HttpStatus.FORBIDDEN);
 
     await this.blogsService.banAndUnbanUserByBlog(params.userId, inputModel);

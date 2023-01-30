@@ -1,7 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import {
-  BannedUsersForBlogType,
+  BannedUsersForBlogDBType,
+  BannedUsersForBlogViewType,
   BlogDBType,
   BlogDBTypeWithoutBlogOwner,
   ViewBannedUsersForBlogWithPaginationType,
@@ -9,7 +10,10 @@ import {
   ViewBlogType,
 } from '../types/blogs.types';
 import { mapBlog } from '../helpers/mapBlogDBToViewModel';
-import { mapBlogById } from '../helpers/mapBlogByIdToViewModel';
+import {
+  mapBlogById,
+  mapBlogByIdWithUserId,
+} from '../helpers/mapBlogByIdToViewModel';
 import { QueryBannedUsersDto } from '../../../bloggers-API/users/api/models/query-banned-users.dto';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -20,21 +24,20 @@ export class BlogsQueryRepository {
     @Inject('BLOG_MODEL')
     private readonly blogModel: Model<BlogDBType>,
     @Inject('BANNED_USER_FOR_BLOG_MODEL')
-    private readonly bannedUserForBlogModel: Model<BannedUsersForBlogType>,
+    private readonly bannedUserForBlogModel: Model<BannedUsersForBlogDBType>,
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async findBlogById(blogId: string): Promise<ViewBlogType | null> {
-    const blogDBType = await this.dataSource.query(
-      `
-    SELECT "BlogId" as "id", "BlogName" as "name", "Description" as "description",
-            "WebsiteUrl" as "websiteUrl", "CreatedAt" as "createdAt"
-    FROM public."Blogs"
-    WHERE "BlogId" = $1;`,
-      [blogId],
-    );
+    const blogDBType = await this.getBlogByIdDBType(blogId);
     if (!blogDBType) return null;
-    return mapBlogById(blogDBType[0]);
+    return mapBlogById(blogDBType);
+  }
+
+  async findBlogByIdWithUserId(blogId: string) {
+    const blogDBType = await this.getBlogByIdDBType(blogId);
+    if (!blogDBType) return null;
+    return mapBlogByIdWithUserId(blogDBType);
   }
 
   async getBlogs(
@@ -98,7 +101,7 @@ export class BlogsQueryRepository {
     const sortBy: string = query.sortBy || 'createdAt';
     const sortDirection: 'asc' | 'desc' = query.sortDirection || 'desc';
 
-    const bannedUsersDBType: BannedUsersForBlogType[] =
+    const bannedUsersDBType: BannedUsersForBlogViewType[] =
       await this.bannedUserForBlogModel
         .find({
           blogId: blogId,
@@ -109,16 +112,15 @@ export class BlogsQueryRepository {
         .sort([[sortBy, sortDirection]])
         .lean();
 
-    const items: Omit<BannedUsersForBlogType, 'blogId'>[] =
-      bannedUsersDBType.map((b) => ({
-        id: b.id,
-        login: b.login,
-        banInfo: {
-          isBanned: b.banInfo.isBanned,
-          banDate: b.banInfo.banDate,
-          banReason: b.banInfo.banReason,
-        },
-      }));
+    const items: BannedUsersForBlogViewType[] = bannedUsersDBType.map((b) => ({
+      id: b.id,
+      login: b.login,
+      banInfo: {
+        isBanned: b.banInfo.isBanned,
+        banDate: b.banInfo.banDate,
+        banReason: b.banInfo.banReason,
+      },
+    }));
 
     const totalCount = await this.bannedUserForBlogModel.count({
       blogId: blogId,
@@ -132,5 +134,19 @@ export class BlogsQueryRepository {
       totalCount,
       items,
     };
+  }
+
+  private async getBlogByIdDBType(blogId: string) {
+    const array = await this.dataSource.query(
+      `
+    SELECT "BlogId" as "id", "BlogName" as "name", "Description" as "description",
+            "WebsiteUrl" as "websiteUrl", "CreatedAt" as "createdAt", "UserId" as "userId"
+    FROM public."Blogs"
+    WHERE "BlogId" = $1;`,
+      [blogId],
+    );
+
+    if (array.length === 0) return null;
+    else return array[0];
   }
 }

@@ -11,7 +11,7 @@ import { QueryPostDto } from '../../posts/api/models/query-post.dto';
 import { LikeDBType } from '../../likes/types/likes.types';
 import { mapCommentDBTypeToAllCommentForAllPosts } from '../helpers/mapCommentDBTypeToAllCommentForAllPosts';
 import { QueryCommentDto } from './models/query-comment.dto';
-import { BannedUsersForBlogType } from '../../blogs/types/blogs.types';
+import { BannedUsersForBlogDBType } from '../../blogs/types/blogs.types';
 
 @Injectable()
 export class CommentsQueryRepository {
@@ -21,7 +21,7 @@ export class CommentsQueryRepository {
     @Inject('LIKES_MODEL')
     private readonly likesModel: Model<LikeDBType>,
     @Inject('BANNED_USER_FOR_BLOG_MODEL')
-    private readonly bannedUserForBlogModel: Model<BannedUsersForBlogType>,
+    private readonly bannedUserForBlogModel: Model<BannedUsersForBlogDBType>,
   ) {}
 
   async getCommentById(

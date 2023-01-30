@@ -8,7 +8,7 @@ import {
 import { Model } from 'mongoose';
 import { PostDBType } from '../posts/types/posts.types';
 import {
-  BannedUsersForBlogType,
+  BannedUsersForBlogDBType,
   BlogDBTypeWithoutBlogOwner,
 } from '../blogs/types/blogs.types';
 import { CommentDBType } from '../comments/types/comments.types';
@@ -34,7 +34,7 @@ export class TestingController {
     @Inject('LIKES_MODEL')
     private readonly likesModel: Model<LikeDBType>,
     @Inject('BANNED_USER_FOR_BLOG_MODEL')
-    private readonly bannedUserForBlogModel: Model<BannedUsersForBlogType>,
+    private readonly bannedUserForBlogModel: Model<BannedUsersForBlogDBType>,
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
   @Delete('all-data')

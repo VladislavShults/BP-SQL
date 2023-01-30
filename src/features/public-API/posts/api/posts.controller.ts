@@ -6,7 +6,6 @@ import {
   HttpException,
   HttpStatus,
   Param,
-  Post,
   Put,
   Query,
   UseGuards,
@@ -17,10 +16,8 @@ import { PostsService } from '../application/posts.service';
 import { PostsRepository } from '../infrastructure/posts.repository';
 import { PostsQueryRepository } from './posts.query.repository';
 import { URIParamPostDto } from './models/URIParam-post.dto';
-import { CreateCommentDto } from '../../comments/api/models/create-comment.dto';
 import {
   ViewCommentsTypeWithPagination,
-  ViewCommentType,
 } from '../../comments/types/comments.types';
 import { CommentsService } from '../../comments/application/comments.service';
 import { CommentsQueryRepository } from '../../comments/api/comments.query.repository';
@@ -74,32 +71,32 @@ export class PostsController {
     );
   }
 
-  @Post(':postId/comments')
-  @HttpCode(201)
-  @UseGuards(JwtAuthGuard, CheckPostInDBGuard)
-  async createCommentByPost(
-    @Param() params: URIParamPostDto,
-    @Body() inputModel: CreateCommentDto,
-    @Request() req,
-  ): Promise<ViewCommentType> {
-    const user = req.user;
-
-    const userBannedForBlog = await this.postsService.checkUserForBan(
-      user._id.toString(),
-      params.postId,
-    );
-    if (userBannedForBlog)
-      throw new HttpException('user', HttpStatus.FORBIDDEN);
-
-    const commentObjectId = await this.commentsService.createCommentByPost(
-      params.postId,
-      inputModel,
-      user,
-    );
-    return await this.commentsQueryRepository.getCommentById(
-      commentObjectId.toString(),
-    );
-  }
+  // @Post(':postId/comments')
+  // @HttpCode(201)
+  // @UseGuards(JwtAuthGuard, CheckPostInDBGuard)
+  // async createCommentByPost(
+  //   @Param() params: URIParamPostDto,
+  //   @Body() inputModel: CreateCommentDto,
+  //   @Request() req,
+  // ): Promise<ViewCommentType> {
+  //   const user = req.user;
+  //
+  //   const userBannedForBlog = await this.postsService.checkUserForBan(
+  //     user._id.toString(),
+  //     params.postId,
+  //   );
+  //   if (userBannedForBlog)
+  //     throw new HttpException('user', HttpStatus.FORBIDDEN);
+  //
+  //   const commentObjectId = await this.commentsService.createCommentByPost(
+  //     params.postId,
+  //     inputModel,
+  //     user,
+  //   );
+  //   return await this.commentsQueryRepository.getCommentById(
+  //     commentObjectId.toString(),
+  //   );
+  // }
 
   @Get(':postId/comments')
   @UseGuards(GetUserFromToken)

@@ -17,6 +17,7 @@ import { QueryBlogDto } from '../../../public-API/blogs/api/models/query-blog.dt
 import { AdminBlogsQueryRepository } from './admin.blogs.query.repository';
 import { URIParamBlogDto } from '../../../public-API/blogs/api/models/URIParam-blog.dto';
 import { BanBlogDto } from './models/ban-blog.dto';
+import { BlogsQueryRepository } from '../../../public-API/blogs/api/blogs.query.repository';
 
 @Controller('sa/blogs')
 export class AdminBlogsController {
@@ -24,6 +25,7 @@ export class AdminBlogsController {
     private readonly usersService: UsersService,
     private readonly blogsService: BlogsService,
     private readonly adminBlogQueryRepository: AdminBlogsQueryRepository,
+    private readonly blogQueryRepository: BlogsQueryRepository,
   ) {}
 
   // @Put(':blogId/bind-with-user/:userId')
@@ -54,7 +56,7 @@ export class AdminBlogsController {
     @Param() params: URIParamBlogDto,
     @Body() inputModel: BanBlogDto,
   ) {
-    const blog = await this.blogsService.findBlogById(params.blogId);
+    const blog = await this.blogQueryRepository.findBlogById(params.blogId);
     if (!blog) throw new HttpException('blog not found', HttpStatus.NOT_FOUND);
 
     // await this.blogsService.banAndUnbanBlog(params.blogId, inputModel.isBanned);

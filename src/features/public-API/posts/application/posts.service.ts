@@ -211,12 +211,12 @@ export class PostsService {
     await this.postsRepository.banAndUnbanPostsByBlog(blogId, banStatus);
   }
 
-  async checkUserForBan(userId: string, postId: string): Promise<boolean> {
-    const post = await this.postsRepository.getPostById(postId);
-    const blog = await this.blogsRepository.getBlogById(post.blogId);
-    const userInBannedUsers = blog.bannedUsers.find((u) => u === userId);
-    return !!userInBannedUsers;
-  }
+  // async checkUserForBan(userId: string, postId: string): Promise<boolean> {
+  //   const post = await this.postsRepository.getPostById(postId);
+  //   const blog = await this.blogsRepository.getBlogById(post.blogId);
+  //   const userInBannedUsers = blog.bannedUsers.find((u) => u === userId);
+  //   return !!userInBannedUsers;
+  // }
 
   async createPost(
     blogId: string,
