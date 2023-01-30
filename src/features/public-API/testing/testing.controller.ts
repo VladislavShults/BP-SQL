@@ -43,7 +43,11 @@ export class TestingController {
     await this.dataSource.query(`DELETE FROM public."BanInfo"`);
     await this.dataSource.query(`DELETE FROM public."EmailConfirmation"`);
     await this.dataSource.query(`DELETE FROM public."DeviceSession"`);
+    await this.dataSource.query(`DELETE FROM public."Posts"`);
+    await this.dataSource.query(`DELETE FROM public."Blogs"`);
+    await this.dataSource.query(`DELETE FROM public."BannedUsersForBlog"`);
     await this.dataSource.query(`DELETE FROM public."Users"`);
+
     // await this.blogModel.deleteMany({});
     // await this.postModel.deleteMany({});
     // await this.commentModel.deleteMany({});
