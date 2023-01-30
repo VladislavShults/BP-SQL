@@ -12,13 +12,17 @@ export class BlogsRepository {
   constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async deleteBlogById(blogId: string) {
-    await this.dataSource.query(
-      `
+    try {
+      await this.dataSource.query(
+        `
     UPDATE public."Blogs"
     SET "IsDeleted"=true
     WHERE "BlogId" = $1;`,
-      [blogId],
-    );
+        [blogId],
+      );
+    } catch (error) {
+      return null;
+    }
   }
 
   async createBlog(

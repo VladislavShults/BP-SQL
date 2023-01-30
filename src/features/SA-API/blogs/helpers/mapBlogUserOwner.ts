@@ -1,4 +1,3 @@
-import { BlogDBType } from '../../../public-API/blogs/types/blogs.types';
 import { ViewBlogWithUserOwnerType } from '../types/admin.blogs.types';
 
 export const mapBlogUserOwner = (blog): ViewBlogWithUserOwnerType => ({

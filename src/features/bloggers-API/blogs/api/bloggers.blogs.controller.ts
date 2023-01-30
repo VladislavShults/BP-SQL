@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { URIParamBlogDto } from '../../../public-API/blogs/api/models/URIParam-blog.dto';
 import { JwtAuthGuard } from '../../../public-API/auth/guards/JWT-auth.guard';
-import { CheckBlogInDBAndBlogOwnerGuard } from '../guards/chechBlogOwner.guard';
+import { CheckBlogInDBAndBlogOwnerGuard } from '../guards/checkBlogOwner.guard';
 import { UpdateBlogDto } from '../../../public-API/blogs/api/models/update-blog.dto';
 import { CreateBlogDto } from '../../../public-API/blogs/api/models/create-blog.dto';
 import { ViewBlogType } from '../../../public-API/blogs/types/blogs.types';

@@ -137,16 +137,20 @@ export class BlogsQueryRepository {
   }
 
   private async getBlogByIdDBType(blogId: string) {
-    const array = await this.dataSource.query(
-      `
+    try {
+      const array = await this.dataSource.query(
+        `
     SELECT "BlogId" as "id", "BlogName" as "name", "Description" as "description",
             "WebsiteUrl" as "websiteUrl", "CreatedAt" as "createdAt", "UserId" as "userId"
     FROM public."Blogs"
-    WHERE "BlogId" = $1;`,
-      [blogId],
-    );
+    WHERE "BlogId" = $1 AND "IsDeleted" = false;`,
+        [blogId],
+      );
 
-    if (array.length === 0) return null;
-    else return array[0];
+      if (array.length === 0) return null;
+      else return array[0];
+    } catch (error) {
+      return null;
+    }
   }
 }

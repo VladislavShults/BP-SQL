@@ -7,30 +7,26 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { UserDBType } from '../../../SA-API/users/types/users.types';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { BlogsQueryRepository } from '../../../public-API/blogs/api/blogs.query.repository';
 
 @Injectable()
 export class CheckBlogInDBAndBlogOwnerGuard implements CanActivate {
-  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
+  constructor(private readonly blogsQueryRepository: BlogsQueryRepository) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: Request = context.switchToHttp().getRequest();
 
     const user: UserDBType = request.user as UserDBType;
+
     const userId = user.id.toString();
 
-    const blogArray = await this.dataSource.query(
-      `
-    SELECT "BlogId", "BlogName", "Description", "WebsiteUrl", "CreatedAt", "UserId" as "userId", "IsDeleted"
-    FROM public."Blogs"
-    WHERE "BlogId" = $1 AND "IsDeleted" = false`,
-      [request.params.blogId],
+    const blog = await this.blogsQueryRepository.findBlogByIdWithUserId(
+      request.params.blogId,
     );
-    if (blogArray.length === 0)
-      throw new HttpException('Blog not found', HttpStatus.NOT_FOUND);
 
-    if (Number(userId) !== blogArray[0].userId)
+    if (!blog) throw new HttpException('Blog not found', HttpStatus.NOT_FOUND);
+
+    if (userId !== blog.userId)
       throw new HttpException('User not owner', HttpStatus.FORBIDDEN);
 
     return true;
