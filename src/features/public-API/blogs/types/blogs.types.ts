@@ -8,6 +8,7 @@ export type BlogDBTypeWithoutBlogOwner = {
 
 export type BannedUsersForBlogDBType = {
   userId: string;
+  login: string;
   isBanned: boolean;
   banDate: Date;
   banReason: string;

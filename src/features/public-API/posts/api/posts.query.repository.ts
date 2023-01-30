@@ -25,8 +25,11 @@ export class PostsQueryRepository {
     postId: string,
     userId?: string,
   ): Promise<ViewPostType | null> {
-    const postDBType = await this.dataSource.query(
-      `
+    let postDBType = [];
+
+    try {
+      postDBType = await this.dataSource.query(
+        `
     SELECT "PostId" as "id", "Title" as "title", "ShortDescription" as "shortDescription", 
             "Content" as "content", p."BlogId" as "blogId", b."BlogName" as "blogName", p."CreatedAt" as "createdAt" 
     FROM public."Posts" p
@@ -34,8 +37,11 @@ export class PostsQueryRepository {
     ON p."BlogId" = b."BlogId"
     WHERE p."IsDeleted" = false
     AND p."PostId" = $1`,
-      [postId],
-    );
+        [postId],
+      );
+    } catch (error) {
+      postDBType = [];
+    }
 
     if (postDBType.length === 0) return null;
 

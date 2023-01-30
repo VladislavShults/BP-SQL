@@ -18,13 +18,19 @@ export class CheckPostInDBGuard implements CanActivate {
 
     const params = request.params;
 
-    const postArray = await this.dataSource.query(
-      `
+    let postArray = [];
+
+    try {
+      postArray = await this.dataSource.query(
+        `
     SELECT "PostId", "IsDeleted"
     FROM public."Posts"
     WHERE "PostId" = $1 AND "BlogId" = $2 AND "IsDeleted" = false`,
-      [params.postId, params.blogId],
-    );
+        [params.postId, params.blogId],
+      );
+    } catch (error) {
+      postArray = [];
+    }
 
     if (postArray.length === 0)
       throw new HttpException('POST NOT FOUND', HttpStatus.NOT_FOUND);

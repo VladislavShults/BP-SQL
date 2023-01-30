@@ -98,40 +98,61 @@ export class BlogsQueryRepository {
     const searchLoginTerm: string = query.searchLoginTerm || '';
     const pageNumber: number = Number(query.pageNumber) || 1;
     const pageSize: number = Number(query.pageSize) || 10;
-    const sortBy: string = query.sortBy || 'createdAt';
-    const sortDirection: 'asc' | 'desc' = query.sortDirection || 'desc';
+    const sortBy: string = query.sortBy || 'banDate';
+    const sortDirection = query.sortDirection || 'desc';
 
-    const bannedUsersDBType: BannedUsersForBlogViewType[] =
-      await this.bannedUserForBlogModel
-        .find({
-          blogId: blogId,
-          login: { $regex: searchLoginTerm, $options: 'i' },
-        })
-        .skip((pageNumber - 1) * pageSize)
-        .limit(pageSize)
-        .sort([[sortBy, sortDirection]])
-        .lean();
+    let bannedUsersDBType: BannedUsersForBlogDBType[] = [];
+    let totalCountArr = [];
+
+    try {
+      bannedUsersDBType = await this.dataSource.query(
+        `
+      SELECT b."UserId" as "userId", u."Login" as "login", "IsBanned" as "isBanned", "BanDate" as "banDate",
+            "BanReason" as "banReason", "BlogId" as "blogId"
+      FROM public."BannedUsersForBlog" b
+      JOIN public."Users" u
+      ON b."UserId" = u."UserId"
+      WHERE b."BlogId" = $1 AND LOWER ("Login") LIKE '%%'
+      ORDER BY ${'"' + sortBy + '"'} ${sortDirection}
+      LIMIT ${pageSize} OFFSET ${(pageNumber - 1) * pageSize};`,
+        [
+          blogId,
+          // '%' + searchLoginTerm.toLocaleLowerCase() + '%'
+        ],
+      );
+    } catch (error) {
+      bannedUsersDBType = [];
+    }
 
     const items: BannedUsersForBlogViewType[] = bannedUsersDBType.map((b) => ({
-      id: b.id,
+      id: b.userId.toString(),
       login: b.login,
       banInfo: {
-        isBanned: b.banInfo.isBanned,
-        banDate: b.banInfo.banDate,
-        banReason: b.banInfo.banReason,
+        isBanned: b.isBanned,
+        banDate: b.banDate,
+        banReason: b.banReason,
       },
     }));
 
-    const totalCount = await this.bannedUserForBlogModel.count({
-      blogId: blogId,
-      login: { $regex: searchLoginTerm, $options: 'i' },
-    });
+    try {
+      totalCountArr = await this.dataSource.query(
+        `
+    SELECT count(*)
+      FROM public."BannedUsersForBlog" b
+      JOIN public."Users" u
+      ON b."UserId" = u."UserId"
+      WHERE b."BlogId" = $1 AND LOWER ("Login") LIKE $2`,
+        [blogId, '%' + searchLoginTerm.toLocaleLowerCase() + '%'],
+      );
+    } catch (error) {
+      totalCountArr[0].count = 0;
+    }
 
     return {
-      pagesCount: Math.ceil(totalCount / pageSize),
+      pagesCount: Math.ceil(totalCountArr[0].count / pageSize),
       page: pageNumber,
       pageSize: pageSize,
-      totalCount,
+      totalCount: Number(totalCountArr[0].count),
       items,
     };
   }

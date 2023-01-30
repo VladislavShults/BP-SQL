@@ -21,13 +21,17 @@ export class PostsRepository {
   }
 
   async deletePostByIdForBlogId(postId: string, blogId: string): Promise<void> {
-    await this.dataSource.query(
-      `
+    try {
+      await this.dataSource.query(
+        `
     UPDATE public."Posts"
     SET  "IsDeleted"=true
     WHERE "PostId"=$1 AND "BlogId"=$2;`,
-      [postId, blogId],
-    );
+        [postId, blogId],
+      );
+    } catch (error) {
+      return null;
+    }
   }
 
   async banPosts(userId: string) {
@@ -74,18 +78,22 @@ export class PostsRepository {
   }
 
   async updatePost(postId: string, inputModel: UpdatePostByBlogIdDto) {
-    await this.dataSource.query(
-      `
+    try {
+      await this.dataSource.query(
+        `
     UPDATE public."Posts"
     SET "Title"=$1, "ShortDescription"=$2, "Content"=$3
     WHERE "PostId" = $4
     AND "IsDeleted" = false;`,
-      [
-        inputModel.title,
-        inputModel.shortDescription,
-        inputModel.content,
-        postId,
-      ],
-    );
+        [
+          inputModel.title,
+          inputModel.shortDescription,
+          inputModel.content,
+          postId,
+        ],
+      );
+    } catch (error) {
+      return null;
+    }
   }
 }
