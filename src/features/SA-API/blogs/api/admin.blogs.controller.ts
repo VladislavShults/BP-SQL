@@ -56,7 +56,10 @@ export class AdminBlogsController {
     @Param() params: URIParamBlogDto,
     @Body() inputModel: BanBlogDto,
   ) {
-    const blog = await this.blogQueryRepository.findBlogById(params.blogId);
+    const blog = await this.blogQueryRepository.findBlogById(
+      params.blogId,
+      true,
+    );
     if (!blog) throw new HttpException('blog not found', HttpStatus.NOT_FOUND);
 
     await this.blogsService.banAndUnbanBlog(params.blogId, inputModel.isBanned);

@@ -21,8 +21,11 @@ import { QueryBlogDto } from './models/query-blog.dto';
 export class BlogsQueryRepository {
   constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
-  async findBlogById(blogId: string): Promise<ViewBlogType | null> {
-    const blogDBType = await this.getBlogByIdDBType(blogId);
+  async findBlogById(
+    blogId: string,
+    isBanned?: boolean,
+  ): Promise<ViewBlogType | null> {
+    const blogDBType = await this.getBlogByIdDBType(blogId, isBanned);
     if (!blogDBType) return null;
     return mapBlogById(blogDBType);
   }

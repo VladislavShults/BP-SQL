@@ -23,13 +23,14 @@ export class AdminBlogsQueryRepository {
       await this.dataSource.query(
         `
     SELECT "BlogId" as "id", "BlogName" as "name", "Description" as "description", "WebsiteUrl" as "websiteUrl",
-            b."CreatedAt" as "createdAt"
+            b."CreatedAt" as "createdAt", u."UserId" as "userId", u."Login" as "userLogin", 
+            b."IsBanned" as "isBanned", b."BanDate" as "banDate"
     FROM public."Blogs" b
     JOIN public. "Users" u
     ON b."UserId" = u."UserId"
     JOIN public. "BanInfo" bi
-    ON b."UserId" = bi."UserId"
-    WHERE b."IsDeleted" = false AND LOWER ("BlogName") LIKE $1
+    ON bi."UserId" = b."UserId"
+    WHERE b."IsDeleted" = false AND bi."IsBanned" = false AND LOWER ("BlogName") LIKE $1
     ORDER BY ${'"' + sortBy + '"'} ${sortDirection}
     LIMIT ${pageSize} OFFSET ${(pageNumber - 1) * pageSize};`,
         ['%' + searchNameTerm.toLocaleLowerCase() + '%'],
