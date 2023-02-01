@@ -16,9 +16,7 @@ import { PostsService } from '../application/posts.service';
 import { PostsRepository } from '../infrastructure/posts.repository';
 import { PostsQueryRepository } from './posts.query.repository';
 import { URIParamPostDto } from './models/URIParam-post.dto';
-import {
-  ViewCommentsTypeWithPagination,
-} from '../../comments/types/comments.types';
+import { ViewCommentsTypeWithPagination } from '../../comments/types/comments.types';
 import { CommentsService } from '../../comments/application/comments.service';
 import { CommentsQueryRepository } from '../../comments/api/comments.query.repository';
 import { QueryPostDto } from './models/query-post.dto';

@@ -35,7 +35,7 @@ export class PostsQueryRepository {
     FROM public."Posts" p
     JOIN public."Blogs" b
     ON p."BlogId" = b."BlogId"
-    WHERE p."IsDeleted" = false
+    WHERE p."IsDeleted" = false AND p."IsBanned" = false
     AND p."PostId" = $1`,
         [postId],
       );

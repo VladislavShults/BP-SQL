@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PostsRepository } from '../infrastructure/posts.repository';
-import { UpdatePostDto } from '../api/models/update-post.dto';
 import { LikesService } from '../../likes/application/likes.service';
-import { URIParamsUpdateDto } from '../../../bloggers-API/blogs/api/models/URI-params-update.dto';
 import { UpdatePostByBlogIdDto } from '../../../bloggers-API/blogs/api/models/update-postByBlogId.dto';
 import { BlogsQueryRepository } from '../../blogs/api/blogs.query.repository';
 import { BlogsRepository } from '../../blogs/infrastructure/blogs.repository';
@@ -165,18 +163,6 @@ export class PostsService {
   //   return true;
   // }
 
-  createUpdateModel(
-    params: URIParamsUpdateDto,
-    inputModel: UpdatePostByBlogIdDto,
-  ): UpdatePostDto {
-    return {
-      title: inputModel.title,
-      shortDescription: inputModel.shortDescription,
-      content: inputModel.content,
-      blogId: params.blogId,
-    };
-  }
-
   async deletePostByIdForBlogId(postId: string, blogId: string): Promise<void> {
     await this.postsRepository.deletePostByIdForBlogId(postId, blogId);
   }
@@ -207,7 +193,7 @@ export class PostsService {
     return this.postsRepository.getPostById(postId);
   }
 
-  async banAndUnbanPostsByBlog(blogId: string, banStatus: boolean) {
+  async banOrUnbanPostsByBlog(blogId: string, banStatus: boolean) {
     await this.postsRepository.banAndUnbanPostsByBlog(blogId, banStatus);
   }
 

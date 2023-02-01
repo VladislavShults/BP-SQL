@@ -49,9 +49,12 @@ export class PostsRepository {
   }
 
   async banAndUnbanPostsByBlog(blogId: string, banStatus: boolean) {
-    await this.postModel.updateMany(
-      { blogId: blogId },
-      { $set: { isBanned: banStatus } },
+    await this.dataSource.query(
+      `
+    UPDATE public."Posts"
+    SET "IsBanned"=$1
+    WHERE "BlogId" = $2;`,
+      [banStatus, blogId],
     );
   }
 

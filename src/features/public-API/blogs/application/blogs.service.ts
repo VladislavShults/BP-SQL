@@ -55,7 +55,7 @@ export class BlogsService {
     }
   }
 
-  async banAndUnbanBlog(blogId: string, banStatus: boolean) {
+  async banOrUnbanBlog(blogId: string, banStatus: boolean) {
     const blog = await this.blogsQueryRepository.getBanAndUnbanBlogById(blogId);
 
     if (blog.isBanned === banStatus) return;

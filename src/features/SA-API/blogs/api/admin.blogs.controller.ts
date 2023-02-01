@@ -18,12 +18,14 @@ import { AdminBlogsQueryRepository } from './admin.blogs.query.repository';
 import { URIParamBlogDto } from '../../../public-API/blogs/api/models/URIParam-blog.dto';
 import { BanBlogDto } from './models/ban-blog.dto';
 import { BlogsQueryRepository } from '../../../public-API/blogs/api/blogs.query.repository';
+import { PostsService } from '../../../public-API/posts/application/posts.service';
 
 @Controller('sa/blogs')
 export class AdminBlogsController {
   constructor(
     private readonly usersService: UsersService,
     private readonly blogsService: BlogsService,
+    private readonly postsService: PostsService,
     private readonly adminBlogQueryRepository: AdminBlogsQueryRepository,
     private readonly blogQueryRepository: BlogsQueryRepository,
   ) {}
@@ -62,7 +64,13 @@ export class AdminBlogsController {
     );
     if (!blog) throw new HttpException('blog not found', HttpStatus.NOT_FOUND);
 
-    await this.blogsService.banAndUnbanBlog(params.blogId, inputModel.isBanned);
+    await this.blogsService.banOrUnbanBlog(params.blogId, inputModel.isBanned);
+
+    await this.postsService.banOrUnbanPostsByBlog(
+      params.blogId,
+      inputModel.isBanned,
+    );
+
     return;
   }
 }
