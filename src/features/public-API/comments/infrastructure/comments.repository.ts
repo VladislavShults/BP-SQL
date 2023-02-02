@@ -1,18 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { CommentDBType } from '../types/comments.types';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class CommentsRepository {
   constructor(
     @Inject('COMMENT_MODEL')
     private readonly commentModel: Model<CommentDBType>,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
-
-  async createComment(comment: Omit<CommentDBType, '_id'>) {
-    const newComment = await this.commentModel.create(comment);
-    return newComment._id;
-  }
 
   async deleteCommentById(commentId: string): Promise<boolean> {
     if (commentId.length !== 24) return false;
@@ -41,5 +39,21 @@ export class CommentsRepository {
       { userId: userId },
       { $set: { isBanned: false } },
     );
+  }
+
+  async createComment(
+    content: string,
+    postId: string,
+    userId: string,
+  ): Promise<number> {
+    const newComment = await this.dataSource.query(
+      `
+    INSERT INTO public."Comments"("Content", "UserId","PostId")
+    VALUES ($1, $2, $3)
+    RETURNING "CommentId" as "commentId"`,
+      [content, userId, postId],
+    );
+
+    return newComment[0].commentId;
   }
 }

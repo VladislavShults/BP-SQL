@@ -10,13 +10,17 @@ import {
   Query,
   UseGuards,
   Request,
+  Post,
 } from '@nestjs/common';
 import { ViewPostWithoutLikesType } from '../types/posts.types';
 import { PostsService } from '../application/posts.service';
 import { PostsRepository } from '../infrastructure/posts.repository';
 import { PostsQueryRepository } from './posts.query.repository';
 import { URIParamPostDto } from './models/URIParam-post.dto';
-import { ViewCommentsTypeWithPagination } from '../../comments/types/comments.types';
+import {
+  ViewCommentsTypeWithPagination,
+  ViewCommentType,
+} from '../../comments/types/comments.types';
 import { CommentsService } from '../../comments/application/comments.service';
 import { CommentsQueryRepository } from '../../comments/api/comments.query.repository';
 import { QueryPostDto } from './models/query-post.dto';
@@ -24,6 +28,7 @@ import { LikeStatusPostDto } from './models/like-status.post.dto';
 import { JwtAuthGuard } from '../../auth/guards/JWT-auth.guard';
 import { CheckPostInDBGuard } from '../guards/check-post-in-DB.post';
 import { GetUserFromToken } from '../../auth/guards/getUserFromToken.guard';
+import { CreateCommentDto } from '../../comments/api/models/create-comment.dto';
 
 @Controller('posts')
 export class PostsController {
@@ -69,32 +74,35 @@ export class PostsController {
     );
   }
 
-  // @Post(':postId/comments')
-  // @HttpCode(201)
-  // @UseGuards(JwtAuthGuard, CheckPostInDBGuard)
-  // async createCommentByPost(
-  //   @Param() params: URIParamPostDto,
-  //   @Body() inputModel: CreateCommentDto,
-  //   @Request() req,
-  // ): Promise<ViewCommentType> {
-  //   const user = req.user;
-  //
-  //   const userBannedForBlog = await this.postsService.checkUserForBan(
-  //     user._id.toString(),
-  //     params.postId,
-  //   );
-  //   if (userBannedForBlog)
-  //     throw new HttpException('user', HttpStatus.FORBIDDEN);
-  //
-  //   const commentObjectId = await this.commentsService.createCommentByPost(
-  //     params.postId,
-  //     inputModel,
-  //     user,
-  //   );
-  //   return await this.commentsQueryRepository.getCommentById(
-  //     commentObjectId.toString(),
-  //   );
-  // }
+  @Post(':postId/comments')
+  @HttpCode(201)
+  @UseGuards(JwtAuthGuard, CheckPostInDBGuard)
+  async createCommentByPost(
+    @Param() params: URIParamPostDto,
+    @Body() inputModel: CreateCommentDto,
+    @Request() req,
+  ): Promise<ViewCommentType> {
+    const user = req.user;
+
+    const userIsBannedForBlog = await this.postsService.checkUserForBanByBlog(
+      user.id,
+      params.postId,
+    );
+    if (userIsBannedForBlog)
+      throw new HttpException('user', HttpStatus.FORBIDDEN);
+
+    const createCommentAndReturnId =
+      await this.commentsService.createCommentByPost(
+        params.postId,
+        inputModel,
+        user.id,
+      );
+
+    return await this.commentsQueryRepository.getCommentById(
+      createCommentAndReturnId.toString(),
+      user.id,
+    );
+  }
 
   @Get(':postId/comments')
   @UseGuards(GetUserFromToken)

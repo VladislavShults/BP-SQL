@@ -197,12 +197,22 @@ export class PostsService {
     await this.postsRepository.banAndUnbanPostsByBlog(blogId, banStatus);
   }
 
-  // async checkUserForBan(userId: string, postId: string): Promise<boolean> {
-  //   const post = await this.postsRepository.getPostById(postId);
-  //   const blog = await this.blogsRepository.getBlogById(post.blogId);
-  //   const userInBannedUsers = blog.bannedUsers.find((u) => u === userId);
-  //   return !!userInBannedUsers;
-  // }
+  async checkUserForBanByBlog(
+    userId: string,
+    postId: string,
+  ): Promise<boolean> {
+    const bannedUsersForBlogArray =
+      await this.postsRepository.getBannedUsersForBlogByPostId(postId);
+
+    if (bannedUsersForBlogArray.length === 0) return false;
+
+    const userInBanArray = bannedUsersForBlogArray.find(
+      (u) => u.id === Number(userId),
+    );
+
+    if (!userInBanArray) return false;
+    else return true;
+  }
 
   async createPost(
     blogId: string,

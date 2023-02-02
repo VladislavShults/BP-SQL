@@ -36,7 +36,7 @@ export class CheckOwnerComment implements CanActivate {
     const comment = await this.commentsQueryRepository.getCommentById(
       params.commentId,
     );
-    if (comment.userId !== user._id.toString())
+    if (comment.commentatorInfo.userId !== user._id.toString())
       throw new HttpException('alien comment', HttpStatus.FORBIDDEN);
     return true;
   }

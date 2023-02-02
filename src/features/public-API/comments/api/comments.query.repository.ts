@@ -12,6 +12,8 @@ import { LikeDBType } from '../../likes/types/likes.types';
 import { mapCommentDBTypeToAllCommentForAllPosts } from '../helpers/mapCommentDBTypeToAllCommentForAllPosts';
 import { QueryCommentDto } from './models/query-comment.dto';
 import { BannedUsersForBlogDBType } from '../../blogs/types/blogs.types';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class CommentsQueryRepository {
@@ -22,36 +24,36 @@ export class CommentsQueryRepository {
     private readonly likesModel: Model<LikeDBType>,
     @Inject('BANNED_USER_FOR_BLOG_MODEL')
     private readonly bannedUserForBlogModel: Model<BannedUsersForBlogDBType>,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async getCommentById(
     commentId: string,
     userId?: string,
   ): Promise<ViewCommentType | null> {
-    if (commentId.length !== 24) return null;
-    const commentDBType = await this.commentModel.findOne({
-      _id: commentId,
-      isBanned: false,
-    });
+    const commentDBType = await this.dataSource.query(
+      `
+    SELECT c."CommentId" as "id", c."Content" as "content", c."UserId" as "userId", u."Login" as "userLogin", 
+           c."CreatedAt" as "createdAt", 
+        (SELECT COUNT(*)
+        FROM public."CommentsLikesOrDislike"
+        WHERE "Status" = 'Like' AND "CommentId" = $1) as "likesCount",
+        (SELECT COUNT(*)
+        FROM public."CommentsLikesOrDislike"
+        WHERE "Status" = 'Dislike' AND "CommentId" = $1) as "dislikesCount",
+        (SELECT "Status" as "myStatus"
+        FROM public."CommentsLikesOrDislike" c
+        WHERE "CommentId" = $1 AND "UserId" = $2) as "myStatus"
+    FROM public."Comments" c
+    JOIN public."Users" u
+    ON c."UserId" = u."UserId"
+    WHERE c."IsBanned" = false AND c."IsDeleted" = false AND c."CommentId" = $1`,
+      [commentId, userId],
+    );
+
     if (!commentDBType) return null;
 
-    const commentViewType = mapComment(commentDBType);
-
-    let myLikeOrDislike: LikeDBType | null = null;
-
-    if (userId) {
-      myLikeOrDislike = await this.likesModel
-        .findOne({
-          idObject: commentId,
-          postOrComment: 'comment',
-          userId: userId,
-          isBanned: false,
-        })
-        .lean();
-    }
-
-    if (myLikeOrDislike)
-      commentViewType.likesInfo.myStatus = myLikeOrDislike.status;
+    const commentViewType = mapComment(commentDBType[0]);
 
     return commentViewType;
   }

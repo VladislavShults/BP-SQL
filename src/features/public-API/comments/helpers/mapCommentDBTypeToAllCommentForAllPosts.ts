@@ -1,12 +1,9 @@
-import {
-  AllCommentsForAllPostType,
-  CommentDBType,
-} from '../types/comments.types';
+import { AllCommentsForAllPostType } from '../types/comments.types';
 
 export const mapCommentDBTypeToAllCommentForAllPosts = (
-  comment: CommentDBType,
+  comment,
 ): AllCommentsForAllPostType => ({
-  id: comment._id.toString(),
+  id: comment.id.toString(),
   content: comment.content,
   createdAt: comment.createdAt,
   likesInfo: {

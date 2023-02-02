@@ -1,48 +1,18 @@
-import {
-  Controller,
-  Delete,
-  HttpCode,
-  HttpStatus,
-  Inject,
-} from '@nestjs/common';
-import { Model } from 'mongoose';
-import { PostDBType } from '../posts/types/posts.types';
-import {
-  BannedUsersForBlogDBType,
-  BlogDBTypeWithoutBlogOwner,
-} from '../blogs/types/blogs.types';
-import { CommentDBType } from '../comments/types/comments.types';
-import { UserDBType } from '../../SA-API/users/types/users.types';
-import { LikeDBType } from '../likes/types/likes.types';
-import { DevicesSecuritySessionType } from '../devices/types/devices.types';
+import { Controller, Delete, HttpCode, HttpStatus } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 @Controller('testing')
 export class TestingController {
-  constructor(
-    @Inject('POST_MODEL')
-    private readonly postModel: Model<PostDBType>,
-    @Inject('BLOG_MODEL')
-    private readonly blogModel: Model<BlogDBTypeWithoutBlogOwner>,
-    @Inject('COMMENT_MODEL')
-    private readonly commentModel: Model<CommentDBType>,
-    @Inject('USER_MODEL')
-    private readonly userModel: Model<UserDBType>,
-    @Inject('DEVICE_SECURITY_MODEL')
-    private readonly devicesSecurityModel: Model<DevicesSecuritySessionType>,
-    @Inject('LIKES_MODEL')
-    private readonly likesModel: Model<LikeDBType>,
-    @Inject('BANNED_USER_FOR_BLOG_MODEL')
-    private readonly bannedUserForBlogModel: Model<BannedUsersForBlogDBType>,
-    @InjectDataSource() private readonly dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
   @Delete('all-data')
   @HttpCode(204)
   async clearAllData(): Promise<HttpStatus> {
     await this.dataSource.query(`DELETE FROM public."BanInfo"`);
     await this.dataSource.query(`DELETE FROM public."EmailConfirmation"`);
     await this.dataSource.query(`DELETE FROM public."DeviceSession"`);
+    await this.dataSource.query(`DELETE FROM public."CommentsLikesOrDislike"`);
+    await this.dataSource.query(`DELETE FROM public."Comments"`);
     await this.dataSource.query(`DELETE FROM public."Posts"`);
     await this.dataSource.query(`DELETE FROM public."BannedUsersForBlog"`);
     await this.dataSource.query(`DELETE FROM public."Blogs"`);

@@ -82,11 +82,11 @@ export class CommentsController {
   ) {
     const user = req.user;
 
-    await this.commentsService.makeLikeOrUnlike(
-      params.commentId,
-      user,
-      inputModel.likeStatus,
-    );
+    // await this.commentsService.makeLikeOrUnlike(
+    //   params.commentId,
+    //   user,
+    //   inputModel.likeStatus,
+    // );
 
     return;
   }

@@ -2,23 +2,12 @@ import { ObjectId } from 'mongodb';
 import { LikeType } from '../../likes/types/likes.types';
 
 export type CommentDBType = {
-  _id: ObjectId;
+  id: number;
   content: string;
   userId: string;
-  userLogin: string;
   createdAt: Date;
   postId: string;
-  likesCount: number;
-  dislikesCount: number;
   isBanned: boolean;
-  blogId: string;
-  postInfo: {
-    id: string;
-    title: string;
-    blogId: string;
-    blogName: string;
-    postOwnerUserId: string;
-  };
 };
 
 type LikesInfoType = {
@@ -27,14 +16,7 @@ type LikesInfoType = {
   myStatus: LikeType;
 };
 
-export type ViewCommentType = {
-  id: string;
-  content: string;
-  userId: string;
-  userLogin: string;
-  createdAt: Date;
-  likesInfo: LikesInfoType;
-};
+export type ViewCommentType = Omit<AllCommentsForAllPostType, 'postInfo'>;
 
 type PaginationType = {
   pagesCount: number;
@@ -53,12 +35,12 @@ export type ViewCommentsTypeWithPagination = PaginationType &
 export type AllCommentsForAllPostType = {
   id: string;
   content: string;
-  createdAt: Date;
-  likesInfo: LikesInfoType;
   commentatorInfo: {
     userId: string;
     userLogin: string;
   };
+  createdAt: Date;
+  likesInfo: LikesInfoType;
   postInfo: {
     id: string;
     title: string;

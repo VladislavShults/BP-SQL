@@ -25,8 +25,8 @@ export class CheckPostInDBGuard implements CanActivate {
         `
     SELECT "PostId", "IsDeleted"
     FROM public."Posts"
-    WHERE "PostId" = $1 AND "BlogId" = $2 AND "IsDeleted" = false`,
-        [params.postId, params.blogId],
+    WHERE "PostId" = $1 AND "IsDeleted" = false AND "IsBanned" = false`,
+        [params.postId],
       );
     } catch (error) {
       postArray = [];

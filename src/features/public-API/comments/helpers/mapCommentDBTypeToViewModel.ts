@@ -1,14 +1,16 @@
-import { CommentDBType, ViewCommentType } from '../types/comments.types';
+import { ViewCommentType } from '../types/comments.types';
 
-export const mapComment = (comment: CommentDBType): ViewCommentType => ({
-  id: comment._id.toString(),
+export const mapComment = (comment): ViewCommentType => ({
+  id: comment.id.toString(),
   content: comment.content,
-  userId: comment.userId,
-  userLogin: comment.userLogin,
+  commentatorInfo: {
+    userId: comment.userId.toString(),
+    userLogin: comment.userLogin,
+  },
   createdAt: comment.createdAt,
   likesInfo: {
     likesCount: comment.likesCount,
     dislikesCount: comment.dislikesCount,
-    myStatus: 'None',
+    myStatus: comment.myStatus || 'None',
   },
 });
