@@ -12,6 +12,7 @@ export class TestingController {
     await this.dataSource.query(`DELETE FROM public."EmailConfirmation"`);
     await this.dataSource.query(`DELETE FROM public."DeviceSession"`);
     await this.dataSource.query(`DELETE FROM public."CommentsLikesOrDislike"`);
+    await this.dataSource.query(`DELETE FROM public."PostsLikesOrDislike"`);
     await this.dataSource.query(`DELETE FROM public."Comments"`);
     await this.dataSource.query(`DELETE FROM public."Posts"`);
     await this.dataSource.query(`DELETE FROM public."BannedUsersForBlog"`);

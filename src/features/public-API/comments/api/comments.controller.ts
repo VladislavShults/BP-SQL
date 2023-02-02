@@ -22,11 +22,13 @@ import { JwtAuthGuard } from '../../auth/guards/JWT-auth.guard';
 import { CheckCommentInDB } from '../guards/check-comment-in-DB';
 import { GetUserFromToken } from '../../auth/guards/getUserFromToken.guard';
 import { CheckOwnerComment } from '../guards/check-owner-comment';
+import { LikesService } from '../../likes/application/likes.service';
 
 @Controller('comments')
 export class CommentsController {
   constructor(
     private readonly commentsService: CommentsService,
+    private readonly likesService: LikesService,
     private readonly commentsRepository: CommentsRepository,
     private readonly commentsQueryRepository: CommentsQueryRepository,
   ) {}
@@ -80,14 +82,13 @@ export class CommentsController {
     @Body() inputModel: LikeStatusCommentDto,
     @Request() req,
   ) {
-    const user = req.user;
+    const userId = req.user.id;
 
-    // await this.commentsService.makeLikeOrUnlike(
-    //   params.commentId,
-    //   user,
-    //   inputModel.likeStatus,
-    // );
-
+    await this.likesService.makeLikeOrDislikeForComment(
+      params.commentId,
+      userId,
+      inputModel.likeStatus,
+    );
     return;
   }
 }

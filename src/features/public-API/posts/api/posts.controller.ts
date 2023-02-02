@@ -29,11 +29,13 @@ import { JwtAuthGuard } from '../../auth/guards/JWT-auth.guard';
 import { CheckPostInDBGuard } from '../guards/check-post-in-DB.post';
 import { GetUserFromToken } from '../../auth/guards/getUserFromToken.guard';
 import { CreateCommentDto } from '../../comments/api/models/create-comment.dto';
+import { LikesService } from '../../likes/application/likes.service';
 
 @Controller('posts')
 export class PostsController {
   constructor(
     private readonly postsService: PostsService,
+    private readonly likesService: LikesService,
     private readonly commentsService: CommentsService,
     private readonly postsRepository: PostsRepository,
     private readonly postsQueryRepository: PostsQueryRepository,
@@ -129,12 +131,12 @@ export class PostsController {
     @Body() inputModel: LikeStatusPostDto,
     @Request() req,
   ) {
-    const user = req.user;
-    // await this.postsService.makeLikeOrUnlike(
-    //   params.postId,
-    //   user,
-    //   inputModel.likeStatus,
-    // );
+    const userId = req.user.id;
+    await this.likesService.makeLikeOrDislikeForPosts(
+      params.postId,
+      userId,
+      inputModel.likeStatus,
+    );
     return;
   }
 }
