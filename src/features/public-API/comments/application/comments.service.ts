@@ -29,10 +29,7 @@ export class CommentsService {
   }
 
   async updateComment(commentId: string, content: string) {
-    const comment = await this.commentsRepository.getCommentById(commentId);
-    if (!comment) return null;
-    comment.content = content;
-    return await this.commentsRepository.updateComment(comment);
+    return await this.commentsRepository.updateComment(commentId, content);
   }
 
   async banComments(userId: string) {

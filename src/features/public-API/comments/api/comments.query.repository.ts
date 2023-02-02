@@ -31,6 +31,19 @@ export class CommentsQueryRepository {
     commentId: string,
     userId?: string,
   ): Promise<ViewCommentType | null> {
+    let stringWhere: string;
+    let params: string[];
+
+    if (userId) {
+      stringWhere =
+        ', (SELECT "Status" as "myStatus" FROM public."CommentsLikesOrDislike" c WHERE "CommentId" = $1 AND "UserId" = $2) as "myStatus"';
+      params = [commentId, userId];
+    }
+    if (!userId) {
+      stringWhere = '';
+      params = [commentId];
+    }
+
     const commentDBType = await this.dataSource.query(
       `
     SELECT c."CommentId" as "id", c."Content" as "content", c."UserId" as "userId", u."Login" as "userLogin", 
@@ -40,15 +53,13 @@ export class CommentsQueryRepository {
         WHERE "Status" = 'Like' AND "CommentId" = $1) as "likesCount",
         (SELECT COUNT(*)
         FROM public."CommentsLikesOrDislike"
-        WHERE "Status" = 'Dislike' AND "CommentId" = $1) as "dislikesCount",
-        (SELECT "Status" as "myStatus"
-        FROM public."CommentsLikesOrDislike" c
-        WHERE "CommentId" = $1 AND "UserId" = $2) as "myStatus"
+        WHERE "Status" = 'Dislike' AND "CommentId" = $1) as "dislikesCount"
+        ${stringWhere}
     FROM public."Comments" c
     JOIN public."Users" u
     ON c."UserId" = u."UserId"
     WHERE c."IsBanned" = false AND c."IsDeleted" = false AND c."CommentId" = $1`,
-      [commentId, userId],
+      params,
     );
 
     if (!commentDBType) return null;

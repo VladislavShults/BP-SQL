@@ -22,9 +22,14 @@ export class CommentsRepository {
     return this.commentModel.findById(commentId);
   }
 
-  async updateComment(comment): Promise<boolean> {
-    const update = await comment.save();
-    return update.modifiedPaths.length > 0;
+  async updateComment(commentId: string, content: string): Promise<void> {
+    await this.dataSource.query(
+      `
+    UPDATE public."Comments"
+    SET "Content"=$1
+    WHERE "CommentId" = $2;`,
+      [content, commentId],
+    );
   }
 
   async banComments(userId: string) {
