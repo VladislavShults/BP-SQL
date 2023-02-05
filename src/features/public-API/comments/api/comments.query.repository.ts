@@ -149,7 +149,7 @@ export class CommentsQueryRepository {
 
     const itemsDBType = await this.dataSource.query(
       `
-    SELECT c."CommentId" as "id", c."Content" as "content", c."UserId" as userId, u."Login" as "userLogin",
+    SELECT c."CommentId" as "id", c."Content" as "content", c."UserId" as "userId", u."Login" as "userLogin",
            c."CreatedAt" as "createdAt", c."PostId" as "postId", p."Title" as "title", p."BlogId" as "blogId",
            b."BlogName" as "blogName"
     FROM public."Comments" c
