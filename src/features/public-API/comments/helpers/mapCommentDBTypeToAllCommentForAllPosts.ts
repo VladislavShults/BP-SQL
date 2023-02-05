@@ -6,19 +6,19 @@ export const mapCommentDBTypeToAllCommentForAllPosts = (
   id: comment.id.toString(),
   content: comment.content,
   createdAt: comment.createdAt,
-  likesInfo: {
-    likesCount: comment.likesCount,
-    dislikesCount: comment.dislikesCount,
-    myStatus: 'None',
-  },
+  // likesInfo: {
+  //   likesCount: comment.likesCount,
+  //   dislikesCount: comment.dislikesCount,
+  //   myStatus: 'None',
+  // },
   commentatorInfo: {
     userId: comment.userId,
     userLogin: comment.userLogin,
   },
   postInfo: {
-    id: comment.postInfo.id,
-    title: comment.postInfo.title,
-    blogId: comment.postInfo.blogId,
-    blogName: comment.postInfo.blogName,
+    id: comment.postId,
+    title: comment.title,
+    blogId: comment.blogId,
+    blogName: comment.blogName,
   },
 });

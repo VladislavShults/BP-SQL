@@ -13,13 +13,16 @@ export class CommentsRepository {
   ) {}
 
   async deleteCommentById(commentId: string): Promise<boolean> {
-    if (commentId.length !== 24) return false;
-    const deleteComment = await this.commentModel.deleteOne({ _id: commentId });
-    return deleteComment.deletedCount > 0;
-  }
-
-  async getCommentById(commentId: string) {
-    return this.commentModel.findById(commentId);
+    try {
+      await this.dataSource.query(
+        `
+      DELETE FROM public."Comments"
+    WHERE "CommentId" = $1;`,
+        [commentId],
+      );
+    } catch (error) {
+      return null;
+    }
   }
 
   async updateComment(commentId: string, content: string): Promise<void> {

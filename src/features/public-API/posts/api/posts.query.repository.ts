@@ -1,25 +1,16 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
-  PostDBType,
   ViewPostsTypeWithPagination,
   ViewPostType,
 } from '../types/posts.types';
-import { Model } from 'mongoose';
 import { mapPost } from '../helpers/mapPostDBToViewModel';
 import { QueryGetPostsByBlogIdDto } from '../../blogs/api/models/query-getPostsByBlogId.dto';
-import { LikeDBType } from '../../likes/types/likes.types';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 @Injectable()
 export class PostsQueryRepository {
-  constructor(
-    @Inject('POST_MODEL')
-    private readonly postModel: Model<PostDBType>,
-    @Inject('LIKES_MODEL')
-    private readonly likesModel: Model<LikeDBType>,
-    @InjectDataSource() private readonly dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async getPostById(
     postId: string,

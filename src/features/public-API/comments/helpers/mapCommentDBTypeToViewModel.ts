@@ -1,6 +1,8 @@
-import { ViewCommentType } from '../types/comments.types';
+import { LikesInfoType, ViewCommentType } from '../types/comments.types';
 
-export const mapComment = (comment): ViewCommentType => ({
+export const mapComment = (
+  comment,
+): ViewCommentType & { likesInfo: LikesInfoType } => ({
   id: comment.id.toString(),
   content: comment.content,
   commentatorInfo: {

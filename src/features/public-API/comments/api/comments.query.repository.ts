@@ -31,17 +31,13 @@ export class CommentsQueryRepository {
     commentId: string,
     userId?: string,
   ): Promise<ViewCommentType | null> {
-    let stringWhere: string;
-    let params: string[];
+    let stringWhere = '';
+    let params: string[] = [commentId];
 
     if (userId) {
       stringWhere =
         ', (SELECT "Status" as "myStatus" FROM public."CommentsLikesOrDislike" c WHERE "CommentId" = $1 AND "UserId" = $2) as "myStatus"';
       params = [commentId, userId];
-    }
-    if (!userId) {
-      stringWhere = '';
-      params = [commentId];
     }
 
     const commentDBType = await this.dataSource.query(
@@ -136,62 +132,66 @@ export class CommentsQueryRepository {
     const sortBy: string = query.sortBy || 'createdAt';
     const sortDirection: 'asc' | 'desc' = query.sortDirection || 'desc';
 
-    const bannedIdsBlogs = await this.bannedUserForBlogModel.find(
-      {
-        id: userId,
-      },
-      { _id: false, blogId: true },
-    );
+    const idsBannedUsersForBlogsThisUser: { id: number }[] =
+      await this.dataSource.query(
+        `
+    SELECT bu."UserId" as "id"
+    FROM public."BannedUsersForBlog" bu
+    JOIN public."Blogs" b
+    ON bu."BlogId" = b."BlogId"
+    WHERE b."UserId" = $1`,
+        [userId],
+      );
 
-    const itemsDBType = await this.commentModel
-      .find({
-        'postInfo.postOwnerUserId': userId,
-        isBanned: false,
-        // blogId: { $nin: bannedIdsBlogs },
-      })
-      .skip((pageNumber - 1) * pageSize)
-      .limit(pageSize)
-      .sort([[sortBy, sortDirection]])
-      .lean();
+    const bannedId = idsBannedUsersForBlogsThisUser.map((i) => {
+      return i.id;
+    });
+
+    const itemsDBType = await this.dataSource.query(
+      `
+    SELECT c."CommentId" as "id", c."Content" as "content", c."UserId" as userId, u."Login" as "userLogin",
+           c."CreatedAt" as "createdAt", c."PostId" as "postId", p."Title" as "title", p."BlogId" as "blogId",
+           b."BlogName" as "blogName"
+    FROM public."Comments" c
+    JOIN public."Users" u
+    ON c."UserId" = u."UserId"
+    JOIN public."Posts" p
+    ON c."PostId" = p."PostId"
+    JOIN public."Blogs" b
+    ON p."BlogId" = b."BlogId"
+    WHERE c."IsBanned" = false AND c."IsDeleted" = false AND b."UserId" = $1
+    AND c."UserId" NOT IN (${bannedId})
+    ORDER BY ${'"' + sortBy + '"'} ${sortDirection}
+    LIMIT ${pageSize} OFFSET ${(pageNumber - 1) * pageSize}`,
+      [userId],
+    );
 
     if (itemsDBType.length === 0) return null;
 
-    const itemsWithoutMyLike = itemsDBType.map((i) =>
+    const items = itemsDBType.map((i) =>
       mapCommentDBTypeToAllCommentForAllPosts(i),
     );
 
-    const items = await Promise.all(
-      itemsWithoutMyLike.map(async (i) => {
-        let myLikeOrDislike: LikeDBType | null = null;
-
-        if (!userId) return i;
-
-        if (userId) {
-          myLikeOrDislike = await this.likesModel
-            .findOne({
-              idObject: i.id,
-              postOrComment: 'comment',
-              userId: userId,
-            })
-            .lean();
-        }
-
-        if (myLikeOrDislike) i.likesInfo.myStatus = myLikeOrDislike.status;
-
-        return i;
-      }),
+    const totalCount = await this.dataSource.query(
+      `
+    SELECT COUNT(*)
+    FROM public."Comments" c
+    JOIN public."Users" u
+    ON c."UserId" = u."UserId"
+    JOIN public."Posts" p
+    ON c."PostId" = p."PostId"
+    JOIN public."Blogs" b
+    ON p."BlogId" = b."BlogId"
+    WHERE c."IsBanned" = false AND c."IsDeleted" = false AND b."UserId" = $1
+    AND c."UserId" NOT IN (${bannedId})`,
+      [userId],
     );
 
-    const totalCount = await this.commentModel.count({
-      'postInfo.postOwnerUserId': userId,
-      isBanned: false,
-    });
-
     return {
-      pagesCount: Math.ceil(totalCount / pageSize),
+      pagesCount: Math.ceil(Number(totalCount[0].count) / pageSize),
       page: pageNumber,
       pageSize,
-      totalCount,
+      totalCount: Number(totalCount[0].count),
       items,
     };
   }

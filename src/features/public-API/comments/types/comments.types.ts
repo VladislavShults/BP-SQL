@@ -1,4 +1,3 @@
-import { ObjectId } from 'mongodb';
 import { LikeType } from '../../likes/types/likes.types';
 
 export type CommentDBType = {
@@ -10,7 +9,7 @@ export type CommentDBType = {
   isBanned: boolean;
 };
 
-type LikesInfoType = {
+export type LikesInfoType = {
   likesCount: number;
   dislikesCount: number;
   myStatus: LikeType;
@@ -40,7 +39,7 @@ export type AllCommentsForAllPostType = {
     userLogin: string;
   };
   createdAt: Date;
-  likesInfo: LikesInfoType;
+  // likesInfo: LikesInfoType;
   postInfo: {
     id: string;
     title: string;

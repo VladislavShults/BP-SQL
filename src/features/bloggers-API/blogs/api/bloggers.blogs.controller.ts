@@ -131,7 +131,7 @@ export class BloggersBlogsController {
     @Query() query: QueryCommentDto,
     @Request() req,
   ): Promise<ViewAllCommentsForAllPostsWithPaginationType> {
-    const userId: string = req.user._id.toString();
+    const userId: string = req.user.id.toString();
     return await this.commentsQueryRepository.getAllCommentsForAllPostsCurrentUser(
       query,
       userId,

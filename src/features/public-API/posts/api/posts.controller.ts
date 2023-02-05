@@ -30,6 +30,7 @@ import { CheckPostInDBGuard } from '../guards/check-post-in-DB.post';
 import { GetUserFromToken } from '../../auth/guards/getUserFromToken.guard';
 import { CreateCommentDto } from '../../comments/api/models/create-comment.dto';
 import { LikesService } from '../../likes/application/likes.service';
+import { UserIsBannedGuard } from '../../../SA-API/users/UserIsBannedGuard';
 
 @Controller('posts')
 export class PostsController {
@@ -78,7 +79,7 @@ export class PostsController {
 
   @Post(':postId/comments')
   @HttpCode(201)
-  @UseGuards(JwtAuthGuard, CheckPostInDBGuard)
+  @UseGuards(JwtAuthGuard, UserIsBannedGuard, CheckPostInDBGuard)
   async createCommentByPost(
     @Param() params: URIParamPostDto,
     @Body() inputModel: CreateCommentDto,
@@ -123,9 +124,10 @@ export class PostsController {
       throw new HttpException('POST NOT FOUND', HttpStatus.NOT_FOUND);
     return comments;
   }
+
   @Put(':postId/like-status')
   @HttpCode(204)
-  @UseGuards(JwtAuthGuard, CheckPostInDBGuard)
+  @UseGuards(JwtAuthGuard, UserIsBannedGuard, CheckPostInDBGuard)
   async makeLikeOrUnlike(
     @Param() params: URIParamPostDto,
     @Body() inputModel: LikeStatusPostDto,

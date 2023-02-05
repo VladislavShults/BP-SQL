@@ -23,6 +23,7 @@ import { CheckCommentInDB } from '../guards/check-comment-in-DB';
 import { GetUserFromToken } from '../../auth/guards/getUserFromToken.guard';
 import { CheckOwnerComment } from '../guards/check-owner-comment';
 import { LikesService } from '../../likes/application/likes.service';
+import { UserIsBannedGuard } from '../../../SA-API/users/UserIsBannedGuard';
 
 @Controller('comments')
 export class CommentsController {
@@ -76,7 +77,7 @@ export class CommentsController {
 
   @Put(':commentId/like-status')
   @HttpCode(204)
-  @UseGuards(JwtAuthGuard, CheckCommentInDB)
+  @UseGuards(JwtAuthGuard, UserIsBannedGuard, CheckCommentInDB)
   async makeLikeOrUnlike(
     @Param() params: URIParamCommentDto,
     @Body() inputModel: LikeStatusCommentDto,
