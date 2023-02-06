@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   HttpCode,
-  HttpException,
   HttpStatus,
   Param,
   Put,
@@ -35,20 +34,17 @@ export class CommentsController {
   ) {}
 
   @Get(':commentId')
-  @UseGuards(GetUserFromToken)
+  @UseGuards(GetUserFromToken, CheckCommentInDB)
   async getCommentById(
     @Param() params: URIParamCommentDto,
     @Request() req,
   ): Promise<ViewCommentType> {
     const userId = req.user?.id;
 
-    const comment = await this.commentsQueryRepository.getCommentById(
+    return this.commentsQueryRepository.getCommentById(
       params.commentId,
       userId,
     );
-    if (!comment)
-      throw new HttpException('COMMENT NOT FOUND', HttpStatus.NOT_FOUND);
-    return comment;
   }
 
   @Delete(':commentId')

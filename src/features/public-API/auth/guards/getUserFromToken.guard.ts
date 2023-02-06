@@ -31,7 +31,7 @@ export class GetUserFromToken implements CanActivate {
 
     if (user.length === 0) return true;
 
-    request.user = user;
+    request.user = user[0];
 
     return true;
   }

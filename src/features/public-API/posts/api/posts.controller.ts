@@ -44,18 +44,13 @@ export class PostsController {
   ) {}
 
   @Get(':postId')
-  @UseGuards(GetUserFromToken)
+  @UseGuards(GetUserFromToken, CheckPostInDBGuard)
   async getPostById(
     @Param() params: URIParamPostDto,
     @Request() req,
   ): Promise<ViewPostWithoutLikesType> {
     const userId = req.user?.id;
-    const post = await this.postsQueryRepository.getPostById(
-      params.postId,
-      userId,
-    );
-    if (!post) throw new HttpException('POST NOT FOUND', HttpStatus.NOT_FOUND);
-    else return post;
+    return this.postsQueryRepository.getPostById(params.postId, userId);
   }
 
   @Get()

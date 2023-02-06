@@ -58,11 +58,9 @@ export class CommentsQueryRepository {
       params,
     );
 
-    if (!commentDBType) return null;
+    if (commentDBType.length === 0) return null;
 
-    const commentViewType = mapComment(commentDBType[0]);
-
-    return commentViewType;
+    return mapComment(commentDBType[0]);
   }
 
   async getCommentsByPostId(
@@ -75,50 +73,54 @@ export class CommentsQueryRepository {
     const sortBy: string = query.sortBy || 'createdAt';
     const sortDirection: 'asc' | 'desc' = query.sortDirection || 'desc';
 
-    let myLikeOrDislike: LikeDBType | null = null;
+    let stringWhere = '';
+    let params: string[] = [postId];
 
-    const itemsDBType = await this.commentModel
-      .find({ postId: postId, isBanned: false })
-      .skip((pageNumber - 1) * pageSize)
-      .limit(pageSize)
-      .sort([[sortBy, sortDirection]])
-      .lean();
+    if (userId) {
+      stringWhere =
+        ', (SELECT "Status" as "myStatus" FROM public."CommentsLikesOrDislike" cl WHERE cl."CommentId" = c."CommentId" AND "UserId" = $2) as "myStatus"';
+      params = [postId, userId];
+    }
 
-    if (itemsDBType.length === 0) return null;
-
-    const itemsWithoutMyLike = itemsDBType.map((i) => mapComment(i));
-
-    const items = await Promise.all(
-      itemsWithoutMyLike.map(async (i) => {
-        if (!userId) return i;
-
-        if (userId) {
-          myLikeOrDislike = await this.likesModel
-            .findOne({
-              idObject: i.id,
-              postOrComment: 'comment',
-              userId: userId,
-              isBanned: false,
-            })
-            .lean();
-        }
-
-        if (myLikeOrDislike) i.likesInfo.myStatus = myLikeOrDislike.status;
-
-        return i;
-      }),
+    const commentDBType = await this.dataSource.query(
+      `
+    SELECT c."CommentId" as "id", c."Content" as "content", c."UserId" as "userId", u."Login" as "userLogin", 
+           c."CreatedAt" as "createdAt", 
+        (SELECT COUNT(*)
+        FROM public."CommentsLikesOrDislike" cl
+        WHERE "Status" = 'Like' AND cl."CommentId" = c."CommentId") as "likesCount",
+        (SELECT COUNT(*)
+        FROM public."CommentsLikesOrDislike" cl
+        WHERE "Status" = 'Dislike' AND cl."CommentId" = c."CommentId") as "dislikesCount"
+        ${stringWhere}
+    FROM public."Comments" c
+    JOIN public."Users" u
+    ON c."UserId" = u."UserId"
+    WHERE c."IsBanned" = false AND c."IsDeleted" = false AND c."PostId" = $1
+    ORDER BY ${'"' + sortBy + '"'} ${sortDirection}
+    LIMIT ${pageSize} OFFSET ${(pageNumber - 1) * pageSize}`,
+      params,
     );
 
-    const totalCount = await this.commentModel.count({
-      postId: postId,
-      isBanned: false,
-    });
+    if (commentDBType.length === 0) return null;
+
+    const items = commentDBType.map((i) => mapComment(i));
+
+    const totalCount = await this.dataSource.query(
+      `
+    SELECT count(*)
+    FROM public."Comments" c
+    JOIN public."Users" u
+    ON c."UserId" = u."UserId"
+    WHERE c."IsBanned" = false AND c."IsDeleted" = false AND c."PostId" = $1`,
+      [params[0]],
+    );
 
     return {
-      pagesCount: Math.ceil(totalCount / pageSize),
+      pagesCount: Math.ceil(Number(totalCount[0].count) / pageSize),
       page: pageNumber,
       pageSize: pageSize,
-      totalCount,
+      totalCount: Number(totalCount[0].count),
       items,
     };
   }
