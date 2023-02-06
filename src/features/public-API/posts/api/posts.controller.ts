@@ -129,11 +129,15 @@ export class PostsController {
     @Request() req,
   ) {
     const userId = req.user.id;
+
     await this.likesService.makeLikeOrDislikeForPosts(
       params.postId,
       userId,
       inputModel.likeStatus,
     );
+
+    await this.likesService.updateNewestLikesForPost(params.postId);
+
     return;
   }
 }

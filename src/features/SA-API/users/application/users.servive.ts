@@ -72,7 +72,9 @@ export class UsersService {
     const user = await this.usersQueryRepository.getUserByIdJoinBanInfoType(
       Number(userId),
     );
+
     if (!user) return false;
+
     if (banModel.isBanned && !user.banInfo.isBanned) {
       const banInfo = {
         isBanned: banModel.isBanned,

@@ -185,16 +185,17 @@ export class UsersQueryRepository {
   ): Promise<ViewUserType | null> {
     const userSQLType = await this.dataSource.query(
       `
-    SELECT *
-    FROM public."BanInfo" B
-    JOIN public."Users" U
-    ON B."UserId" = U."UserId"
-    WHERE B."UserId" = $1
+    SELECT u."UserId" as "id", u."Login" as "login", u."Email" as "email",u."IsBanned" as "isBanned",
+           u."CreatedAt" as "createdAt", b."BanDate" as "banDate", b."BanReason" as "banReason"
+    FROM public."BanInfo" b
+    JOIN public."Users" u
+    ON b."UserId" = u."UserId"
+    WHERE b."UserId" = $1
     `,
       [userId],
     );
 
-    if (!userSQLType) return null;
+    if (userSQLType.length === 0) return null;
 
     return mapUserSQLTypeToViewType(userSQLType[0]);
   }

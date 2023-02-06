@@ -1,13 +1,13 @@
 import { ViewUserType } from '../types/users.types';
 
 export const mapUserSQLTypeToViewType = (user): ViewUserType => ({
-  id: user.UserId.toString(),
-  login: user.Login,
-  email: user.Email,
-  createdAt: user.CreatedAt,
+  id: user.id.toString(),
+  login: user.login,
+  email: user.email,
+  createdAt: user.createdAt,
   banInfo: {
-    isBanned: user.IsBanned,
-    banDate: user.BanDate,
-    banReason: user.BanReason,
+    isBanned: user.isBanned,
+    banDate: user.banDate,
+    banReason: user.banReason,
   },
 });

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { LikesRepository } from '../infrastructure/likes.repository';
 import { LikeDBType, LikeType } from '../types/likes.types';
+import { NewestLikesType } from '../../posts/types/posts.types';
 
 @Injectable()
 export class LikesService {
@@ -150,5 +151,15 @@ export class LikesService {
   private async resetLikeComment(commentId: string, userId: string) {
     await this.likesRepository.removeLikeOrDislikeForComment(commentId, userId);
     return true;
+  }
+
+  async updateNewestLikesForPost(postId: string) {
+    const threeNewestLikes: NewestLikesType[] =
+      await this.likesRepository.getThreeNewestLikesForPost(postId);
+
+    await this.likesRepository.updateNewestLikesForPost(
+      postId,
+      threeNewestLikes,
+    );
   }
 }

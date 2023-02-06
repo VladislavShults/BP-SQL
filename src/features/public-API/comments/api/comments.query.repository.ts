@@ -40,8 +40,11 @@ export class CommentsQueryRepository {
       params = [commentId, userId];
     }
 
-    const commentDBType = await this.dataSource.query(
-      `
+    let commentDBType = [];
+
+    try {
+      commentDBType = await this.dataSource.query(
+        `
     SELECT c."CommentId" as "id", c."Content" as "content", c."UserId" as "userId", u."Login" as "userLogin", 
            c."CreatedAt" as "createdAt", 
         (SELECT COUNT(*)
@@ -55,8 +58,9 @@ export class CommentsQueryRepository {
     JOIN public."Users" u
     ON c."UserId" = u."UserId"
     WHERE c."IsBanned" = false AND c."IsDeleted" = false AND c."CommentId" = $1`,
-      params,
-    );
+        params,
+      );
+    } catch (error) {}
 
     if (commentDBType.length === 0) return null;
 
@@ -82,8 +86,11 @@ export class CommentsQueryRepository {
       params = [postId, userId];
     }
 
-    const commentDBType = await this.dataSource.query(
-      `
+    let commentDBType = [];
+
+    try {
+      commentDBType = await this.dataSource.query(
+        `
     SELECT c."CommentId" as "id", c."Content" as "content", c."UserId" as "userId", u."Login" as "userLogin", 
            c."CreatedAt" as "createdAt", 
         (SELECT COUNT(*)
@@ -99,8 +106,9 @@ export class CommentsQueryRepository {
     WHERE c."IsBanned" = false AND c."IsDeleted" = false AND c."PostId" = $1
     ORDER BY ${'"' + sortBy + '"'} ${sortDirection}
     LIMIT ${pageSize} OFFSET ${(pageNumber - 1) * pageSize}`,
-      params,
-    );
+        params,
+      );
+    } catch (error) {}
 
     if (commentDBType.length === 0) return null;
 

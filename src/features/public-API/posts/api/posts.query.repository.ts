@@ -18,17 +18,33 @@ export class PostsQueryRepository {
   ): Promise<ViewPostType | null> {
     let postDBType = [];
 
+    let stringWhere = '';
+    let params: string[] = [postId];
+
+    if (userId) {
+      stringWhere =
+        ', (SELECT "Status" as "myStatus" FROM public."PostsLikesOrDislike" pl WHERE pl."PostId" = p."PostId" AND pl."UserId" = $2) as "myStatus"';
+      params = [postId, userId];
+    }
+
     try {
       postDBType = await this.dataSource.query(
         `
-    SELECT "PostId" as "id", "Title" as "title", "ShortDescription" as "shortDescription", 
-            "Content" as "content", p."BlogId" as "blogId", b."BlogName" as "blogName", p."CreatedAt" as "createdAt" 
+    SELECT p."PostId" as "id", p."Title" as "title", p."ShortDescription" as "shortDescription", p."NewestLikes" as "newestLikes", 
+           p."Content" as "content", p."BlogId" as "blogId", b."BlogName" as "blogName", p."CreatedAt" as "createdAt", 
+        (SELECT COUNT(*)
+           FROM public."PostsLikesOrDislike" pl
+           WHERE pl."Status" = 'Like' AND pl."PostId" = p."PostId") as "likesCount",
+        (SELECT COUNT(*)
+           FROM public."PostsLikesOrDislike" pl
+           WHERE pl."Status" = 'Dislike' AND pl."PostId" = p."PostId") as "dislikesCount"
+           ${stringWhere}
     FROM public."Posts" p
     JOIN public."Blogs" b
     ON p."BlogId" = b."BlogId"
     WHERE p."IsDeleted" = false AND p."IsBanned" = false
     AND p."PostId" = $1`,
-        [postId],
+        params,
       );
     } catch (error) {
       postDBType = [];
@@ -49,88 +65,38 @@ export class PostsQueryRepository {
     userId: string,
     blogId?: string,
   ): Promise<ViewPostsTypeWithPagination> {
-    // const myLikeOrDislike: LikeDBType | null = null;
-    // let itemsDBType: PostDBType[];
-    // let totalCount: number;
+    let stringWhere = '';
+    let params = [];
 
-    const itemsDBType = await this.dataSource.query(`
-    SELECT "PostId" as "id", "Title" as "title", "ShortDescription" as "shortDescription",
-            "Content" as "content", p."BlogId" as "blogId", b."BlogName" as "blogName", p."CreatedAt" as "createdAt"
+    if (userId) {
+      stringWhere =
+        ', (SELECT "Status" as "myStatus" FROM public."PostsLikesOrDislike" pl WHERE pl."PostId" = p."PostId" AND pl."UserId" = $1) as "myStatus"';
+      params = [userId];
+    }
+    const itemsDBType = await this.dataSource.query(
+      `
+    SELECT "PostId" as "id", "Title" as "title", "ShortDescription" as "shortDescription", p."NewestLikes" as "newestLikes",
+            "Content" as "content", p."BlogId" as "blogId", b."BlogName" as "blogName", p."CreatedAt" as "createdAt",
+        (SELECT COUNT(*)
+           FROM public."PostsLikesOrDislike" pl
+           WHERE pl."Status" = 'Like' AND pl."PostId" = p."PostId") as "likesCount",
+        (SELECT COUNT(*)
+           FROM public."PostsLikesOrDislike" pl
+           WHERE pl."Status" = 'Dislike' AND pl."PostId" = p."PostId") as "dislikesCount"
+           ${stringWhere}
     FROM public."Posts" p
     JOIN public. "Blogs" b
     ON p."BlogId" = b."BlogId"
     ORDER BY ${'"' + sortBy + '"'} ${sortDirection}
-    LIMIT ${pageSize} OFFSET ${(pageNumber - 1) * pageSize}`);
+    LIMIT ${pageSize} OFFSET ${(pageNumber - 1) * pageSize}`,
+      params,
+    );
 
     const totalCount = await this.dataSource.query(`
     SELECT count(*)
     FROM public."Posts"`);
 
     const items = itemsDBType.map((i) => mapPost(i));
-
-    // if (!blogId) totalCount = await this.postModel.count({ isBanned: false });
-    // else
-    //   totalCount = await this.postModel.count({
-    //     blogId: blogId,
-    //     isBanned: false,
-    //   });
-
-    // if (!blogId) {
-    //   itemsDBType = await this.postModel
-    //     .find({ isBanned: false })
-    //     .skip((pageNumber - 1) * pageSize)
-    //     .limit(pageSize)
-    //     .sort([[sortBy, sortDirection]])
-    //     .lean();
-    // } else {
-    //   itemsDBType = await this.postModel
-    //     .find({ blogId: blogId, isBanned: false })
-    //     .skip((pageNumber - 1) * pageSize)
-    //     .limit(pageSize)
-    //     .sort([[sortBy, sortDirection]])
-    //     .lean();
-    // }
-    //
-    // const itemsWithoutNewestLikesAndMyStatus = itemsDBType.map((i) =>
-    //   mapPost(i),
-    // );
-    //
-    // const items = await Promise.all(
-    //   itemsWithoutNewestLikesAndMyStatus.map(async (i) => {
-    //     const threeNewestLikes: NewestLikesType[] = await this.likesModel
-    //       .find({
-    //         idObject: i.id,
-    //         postOrComment: 'post',
-    //         status: 'Like',
-    //         isBanned: false,
-    //       })
-    //       .sort({ addedAt: -1 })
-    //       .select('-_id -idObject -status -postOrComment -isBanned')
-    //       .limit(3)
-    //       .lean();
-    //
-    //     if (threeNewestLikes.length > 0)
-    //       i.extendedLikesInfo.newestLikes = threeNewestLikes;
-    //
-    //     if (!userId) return i;
-    //
-    //     if (userId) {
-    //       myLikeOrDislike = await this.likesModel
-    //         .findOne({
-    //           idObject: i.id,
-    //           postOrComment: 'post',
-    //           userId: userId,
-    //           isBanned: false,
-    //         })
-    //         .lean();
-    //     }
-    //
-    //     if (myLikeOrDislike)
-    //       i.extendedLikesInfo.myStatus = myLikeOrDislike.status;
-    //
-    //     return i;
-    //   }),
-    // );
 
     return {
       pagesCount: Math.ceil(totalCount[0].count / pageSize),

@@ -183,6 +183,13 @@ RETURNING "UserId";
     WHERE "UserId" = $4;`,
       [banInfo.isBanned, banInfo.banDate, banInfo.banReason, userId],
     );
+    await this.dataSource.query(
+      `
+    UPDATE public."Users"
+    SET "IsBanned"= $1
+    WHERE "UserId" = $2;`,
+      [banInfo.isBanned, userId],
+    );
   }
 
   async refreshConfirmationCodeAndDate(

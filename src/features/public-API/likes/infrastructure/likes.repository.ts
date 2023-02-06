@@ -7,6 +7,7 @@ import {
 } from '../types/likes.types';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { NewestLikesType } from '../../posts/types/posts.types';
 
 @Injectable()
 export class LikesRepository {
@@ -228,5 +229,32 @@ export class LikesRepository {
     } catch (error) {
       return null;
     }
+  }
+
+  async getThreeNewestLikesForPost(postId: string) {
+    return this.dataSource.query(
+      `
+    SELECT pl."CreatedAt" as "addedAt", pl."UserId":: character varying as "userId", u."Login" as "login" 
+    FROM public."PostsLikesOrDislike" pl
+    JOIN public."Users" u
+    ON pl."UserId" = u."UserId"
+    WHERE "Status" = 'Like' AND pl."PostId" = $1
+    ORDER BY "addedAt" desc
+    LIMIT 3 OFFSET 0`,
+      [postId],
+    );
+  }
+
+  async updateNewestLikesForPost(
+    postId: string,
+    threeNewestLikes: NewestLikesType[],
+  ) {
+    await this.dataSource.query(
+      `
+    UPDATE public."Posts"
+    SET "NewestLikes"=$2
+    WHERE "PostId" = $1;`,
+      [postId, threeNewestLikes],
+    );
   }
 }

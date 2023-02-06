@@ -17,7 +17,7 @@ export type NewestLikesType = {
   login: string;
 };
 
-type ExtendedLikesInfoType = {
+export type ExtendedLikesInfoType = {
   likesCount: number;
   dislikesCount: number;
   myStatus: 'None' | 'Like' | 'Dislike';

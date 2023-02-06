@@ -103,14 +103,20 @@ export class PostsRepository {
   async getBannedUsersForBlogByPostId(
     postId: string,
   ): Promise<{ id: number }[]> {
-    return this.dataSource.query(
-      `
+    let bannedUsers = [];
+
+    try {
+      bannedUsers = await this.dataSource.query(
+        `
     SELECT bu."UserId" as "id"
     FROM public."BannedUsersForBlog" bu
     JOIN public."Posts" p
     ON bu."BlogId" = p."BlogId"
     WHERE p."PostId" = $1`,
-      [postId],
-    );
+        [postId],
+      );
+    } catch (error) {}
+
+    return bannedUsers;
   }
 }

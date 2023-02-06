@@ -1,6 +1,6 @@
-import { PostDBType, ViewPostType } from '../types/posts.types';
+import { ViewPostType } from '../types/posts.types';
 
-export const mapPost = (post: PostDBType): ViewPostType => ({
+export const mapPost = (post): ViewPostType => ({
   id: post.id.toString(),
   title: post.title,
   shortDescription: post.shortDescription,
@@ -9,9 +9,9 @@ export const mapPost = (post: PostDBType): ViewPostType => ({
   blogName: post.blogName,
   createdAt: post.createdAt,
   extendedLikesInfo: {
-    likesCount: 0,
-    dislikesCount: 0,
-    myStatus: 'None',
-    newestLikes: [],
+    likesCount: Number(post.likesCount),
+    dislikesCount: Number(post.dislikesCount),
+    myStatus: post.myStatus || 'None',
+    newestLikes: post.newestLikes || [],
   },
 });
