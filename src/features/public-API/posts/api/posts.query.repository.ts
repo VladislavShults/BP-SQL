@@ -152,7 +152,7 @@ export class PostsQueryRepository {
       `
     SELECT count(*)
     FROM public."Posts"
-    WHERE "BlogId" = $1`,
+    WHERE "BlogId" = $1 AND "IsDeleted" = false`,
       [params[0]],
     );
 
