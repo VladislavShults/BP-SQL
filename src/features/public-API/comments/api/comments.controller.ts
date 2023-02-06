@@ -40,7 +40,7 @@ export class CommentsController {
     @Param() params: URIParamCommentDto,
     @Request() req,
   ): Promise<ViewCommentType> {
-    const userId = req.user?._id;
+    const userId = req.user?.id;
 
     const comment = await this.commentsQueryRepository.getCommentById(
       params.commentId,
