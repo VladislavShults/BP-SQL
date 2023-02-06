@@ -44,7 +44,7 @@ export class BlogsController {
     @Query() query: QueryGetPostsByBlogIdDto,
     @Request() req,
   ): Promise<ViewPostsTypeWithPagination> {
-    const userId = req.user?._id.toString() || null;
+    const userId = req.user?.id.toString() || null;
 
     return await this.postsQueryRepository.getPostsByBlogId(
       params.blogId,

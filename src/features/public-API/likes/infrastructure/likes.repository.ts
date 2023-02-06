@@ -238,7 +238,9 @@ export class LikesRepository {
     FROM public."PostsLikesOrDislike" pl
     JOIN public."Users" u
     ON pl."UserId" = u."UserId"
-    WHERE "Status" = 'Like' AND pl."PostId" = $1
+    JOIN public."BanInfo" b
+    ON b."UserId" = u."UserId"
+    WHERE "Status" = 'Like' AND pl."PostId" = $1 AND b."IsBanned" = false
     ORDER BY "addedAt" desc
     LIMIT 3 OFFSET 0`,
       [postId],

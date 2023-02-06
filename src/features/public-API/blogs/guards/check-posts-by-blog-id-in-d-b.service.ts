@@ -18,10 +18,10 @@ export class CheckPostsByBlogIdInDB implements CanActivate {
 
     const params = request.params;
 
-    let postArray = [];
+    let postsArray = [];
 
     try {
-      postArray = await this.dataSource.query(
+      postsArray = await this.dataSource.query(
         `
     SELECT "PostId", "IsDeleted"
     FROM public."Posts"
@@ -29,10 +29,10 @@ export class CheckPostsByBlogIdInDB implements CanActivate {
         [params.blogId],
       );
     } catch (error) {
-      postArray = [];
+      postsArray = [];
     }
 
-    if (postArray.length === 0)
+    if (postsArray.length === 0)
       throw new HttpException('POST NOT FOUND', HttpStatus.NOT_FOUND);
     return true;
   }
