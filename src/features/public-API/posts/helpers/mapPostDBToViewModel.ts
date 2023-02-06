@@ -23,3 +23,4 @@ export const mapPost = (post): ViewPostType => {
     },
   };
 };
+
