@@ -66,7 +66,7 @@ export class PostsController {
     const sortBy: string = query.sortBy || 'createdAt';
     const sortDirection: 'asc' | 'desc' = query.sortDirection || 'desc';
 
-    const userId = req.user?._id.toString() || null;
+    const userId = req.user?.id.toString() || null;
 
     return await this.postsQueryRepository.getPosts(
       pageNumber,

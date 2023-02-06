@@ -17,7 +17,7 @@ export class CheckCommentInDB implements CanActivate {
     const request: Request = context.switchToHttp().getRequest();
     const params = request.params;
 
-    let commentArray = [];
+    let commentArray: any[];
 
     try {
       commentArray = await this.dataSource.query(
@@ -33,6 +33,7 @@ export class CheckCommentInDB implements CanActivate {
 
     if (commentArray.length === 0)
       throw new HttpException('POST NOT FOUND', HttpStatus.NOT_FOUND);
+
     return true;
   }
 }

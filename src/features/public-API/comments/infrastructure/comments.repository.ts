@@ -16,7 +16,8 @@ export class CommentsRepository {
     try {
       await this.dataSource.query(
         `
-      DELETE FROM public."Comments"
+      UPDATE public."Comments"
+    SET "IsDeleted"=true
     WHERE "CommentId" = $1;`,
         [commentId],
       );
