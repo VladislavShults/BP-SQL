@@ -49,7 +49,7 @@ export class PostsController {
     @Param() params: URIParamPostDto,
     @Request() req,
   ): Promise<ViewPostWithoutLikesType> {
-    const userId = req.user?._id;
+    const userId = req.user?.id;
     const post = await this.postsQueryRepository.getPostById(
       params.postId,
       userId,
@@ -114,7 +114,7 @@ export class PostsController {
     @Query() query: QueryPostDto,
     @Request() req,
   ): Promise<ViewCommentsTypeWithPagination> {
-    const userId = req.user?._id.toString() || null;
+    const userId = req.user?.id.toString() || null;
     const comments = await this.commentsQueryRepository.getCommentsByPostId(
       params.postId,
       query,
