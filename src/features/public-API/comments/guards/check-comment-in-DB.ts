@@ -23,8 +23,10 @@ export class CheckCommentInDB implements CanActivate {
       commentArray = await this.dataSource.query(
         `
     SELECT "CommentId", "IsDeleted"
-    FROM public."Comments"
-    WHERE "CommentId" = $1 AND "IsDeleted" = false AND "IsBanned" = false`,
+    FROM public."Comments" c
+    JOIN public."BanInfo" b
+    ON b."UserId" = c."UserId"
+    WHERE c."CommentId" = $1 AND c."IsDeleted" = false AND c."IsBanned" = false AND b."IsBanned" = false`,
         [params.commentId],
       );
     } catch (error) {

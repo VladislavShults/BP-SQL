@@ -3,28 +3,37 @@ import {
   ExecutionContext,
   HttpException,
   HttpStatus,
-  Inject,
   Injectable,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { Model } from 'mongoose';
-import { PostDBType } from '../../posts/types/posts.types';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class CheckPostsByBlogIdInDB implements CanActivate {
-  constructor(
-    @Inject('POST_MODEL')
-    private readonly postModel: Model<PostDBType>,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: Request = context.switchToHttp().getRequest();
+
     const params = request.params;
-    if (params.blogId.length !== 24)
-      throw new HttpException('POSTS NOT FOUND', HttpStatus.NOT_FOUND);
-    const post = await this.postModel.find({ blogId: params.blogId });
-    if (post.length === 0)
-      throw new HttpException('POSTS NOT FOUND', HttpStatus.NOT_FOUND);
+
+    let postArray = [];
+
+    try {
+      postArray = await this.dataSource.query(
+        `
+    SELECT "PostId", "IsDeleted"
+    FROM public."Posts"
+    WHERE "BlogId" = $1 AND "IsDeleted" = false AND "IsBanned" = false`,
+        [params.blogId],
+      );
+    } catch (error) {
+      postArray = [];
+    }
+
+    if (postArray.length === 0)
+      throw new HttpException('POST NOT FOUND', HttpStatus.NOT_FOUND);
     return true;
   }
 }

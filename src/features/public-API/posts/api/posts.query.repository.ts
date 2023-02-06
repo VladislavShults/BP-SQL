@@ -34,10 +34,14 @@ export class PostsQueryRepository {
            p."Content" as "content", p."BlogId" as "blogId", b."BlogName" as "blogName", p."CreatedAt" as "createdAt", 
         (SELECT COUNT(*)
            FROM public."PostsLikesOrDislike" pl
-           WHERE pl."Status" = 'Like' AND pl."PostId" = p."PostId") as "likesCount",
+           JOIN public."BanInfo" b
+           ON pl."UserId" = b."UserId"
+           WHERE pl."Status" = 'Like' AND pl."PostId" = p."PostId" AND b."IsBanned" = false) as "likesCount",
         (SELECT COUNT(*)
            FROM public."PostsLikesOrDislike" pl
-           WHERE pl."Status" = 'Dislike' AND pl."PostId" = p."PostId") as "dislikesCount"
+           JOIN public."BanInfo" b
+           ON pl."UserId" = b."UserId"
+           WHERE pl."Status" = 'Dislike' AND pl."PostId" = p."PostId" AND b."IsBanned" = false) as "dislikesCount"
            ${stringWhere}
     FROM public."Posts" p
     JOIN public."Blogs" b
@@ -102,7 +106,7 @@ export class PostsQueryRepository {
       pagesCount: Math.ceil(totalCount[0].count / pageSize),
       page: pageNumber,
       pageSize: pageSize,
-      totalCount: totalCount[0].count,
+      totalCount: Number(totalCount[0].count),
       items,
     };
   }
