@@ -142,6 +142,7 @@ export class PostsQueryRepository {
     FROM public."Posts" p
     JOIN public. "Blogs" b
     ON p."BlogId" = b."BlogId"
+    WHERE p."IsDeleted" = false
     ORDER BY ${'"' + sortBy + '"'} ${sortDirection}
     LIMIT ${pageSize} OFFSET ${(pageNumber - 1) * pageSize}`,
       params,
