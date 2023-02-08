@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   BannedUsersForBlogDBType,
   BannedUsersForBlogViewType,
-  BlogDBTypeWithoutBlogOwner,
+  BlogDBType,
   ViewBannedUsersForBlogWithPaginationType,
   ViewBlogsTypeWithPagination,
   ViewBlogType,
@@ -30,7 +30,7 @@ export class BlogsQueryRepository {
     return mapBlogById(blogDBType);
   }
 
-  async findBlogByIdWithUserId(blogId: string) {
+  async findBlogByIdReturnBlogWithUserId(blogId: string) {
     const blogDBType = await this.getBlogByIdDBType(blogId);
     if (!blogDBType) return null;
     return mapBlogByIdWithUserId(blogDBType);
@@ -57,10 +57,10 @@ export class BlogsQueryRepository {
       arrayParam.push(userId);
     }
 
-    const itemsDB: BlogDBTypeWithoutBlogOwner[] = await this.dataSource.query(
+    const itemsDB: BlogDBType[] = await this.dataSource.query(
       `
     SELECT "BlogId" as "id", "BlogName" as "name", "Description" as "description", "WebsiteUrl" as "websiteUrl",
-            b."CreatedAt" as "createdAt"
+            b."CreatedAt" as "createdAt", b."IsMembership" as "isMembership"
     FROM public."Blogs" b
     JOIN public. "Users" u
     ON b."UserId" = u."UserId"
@@ -171,7 +171,7 @@ export class BlogsQueryRepository {
     try {
       const array = await this.dataSource.query(
         `
-    SELECT "BlogId" as "id", "BlogName" as "name", "Description" as "description",
+    SELECT "BlogId" as "id", "BlogName" as "name", "Description" as "description", "IsMembership" as "isMembership",
             "WebsiteUrl" as "websiteUrl", "CreatedAt" as "createdAt", "UserId" as "userId", "IsBanned" as "isBanned"
     FROM public."Blogs"
     ${stringWhere}`,

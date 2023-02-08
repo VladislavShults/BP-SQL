@@ -6,6 +6,7 @@ export const mapBlogById = (blog: BlogDBType): ViewBlogByIdType => ({
   description: blog.description,
   websiteUrl: blog.websiteUrl,
   createdAt: blog.createdAt,
+  isMembership: blog.isMembership,
 });
 
 export const mapBlogByIdWithUserId = (
@@ -17,4 +18,5 @@ export const mapBlogByIdWithUserId = (
   websiteUrl: blog.websiteUrl,
   createdAt: blog.createdAt,
   userId: blog.userId.toString(),
+  isMembership: blog.isMembership,
 });

@@ -9,10 +9,6 @@ import {
 } from '../types/users.types';
 import { BanUserDto } from '../api/models/ban-user.dto';
 import { AuthService } from '../../../public-API/auth/application/auth.service';
-import { DevicesService } from '../../../public-API/devices/application/devices.service';
-import { CommentsService } from '../../../public-API/comments/application/comments.service';
-import { PostsService } from '../../../public-API/posts/application/posts.service';
-import { LikesService } from '../../../public-API/likes/application/likes.service';
 import { UsersQueryRepository } from '../api/users.query.repository';
 
 @Injectable()
@@ -20,10 +16,6 @@ export class UsersService {
   constructor(
     private readonly authService: AuthService,
     private readonly usersRepository: UsersRepository,
-    private readonly devicesService: DevicesService,
-    private readonly commentsService: CommentsService,
-    private readonly postsService: PostsService,
-    private readonly likesService: LikesService,
     private readonly usersQueryRepository: UsersQueryRepository,
   ) {}
 
@@ -84,27 +76,6 @@ export class UsersService {
 
       await this.usersRepository.banOrUnbanUser(userId, banInfo);
 
-      // await this.devicesService.terminateAllSessionByUserId(userId);
-      // await this.postsService.banPosts(userId);
-      // await this.likesService.banLikes(userId);
-      // await this.commentsService.banComments(userId);
-      // const bannedLikesForPosts =
-      //   await this.likesService.getBannedLikesForPostsByUser(userId);
-      // for await (const element of bannedLikesForPosts) {
-      //   await this.postsService.correctLikeAndDislikeCountersBan(
-      //     element.idObject.toString(),
-      //     element.status,
-      //   );
-      // }//
-      // const bannedLikesForComments =
-      //   await this.likesService.getBannedLikesForCommentsByUser(userId);
-      // for await (const element of bannedLikesForComments) {
-      //   await this.commentsService.correctLikeAndDislikeCountersBan(
-      //     element.idObject.toString(),
-      //     element.status,
-      //   );
-      // }
-
       return;
     }
     if (!banModel.isBanned && user.banInfo.isBanned) {
@@ -115,26 +86,6 @@ export class UsersService {
       };
       await this.usersRepository.banOrUnbanUser(userId, banInfo);
 
-      // const bannedLikesForPosts =
-      //   await this.likesService.getBannedLikesForPostsByUser(userId);
-      //
-      // for (const element of bannedLikesForPosts) {
-      //   await this.postsService.correctLikeAndDislikeCountersUnban(
-      //     element.idObject.toString(),
-      //     element.status,
-      //   );
-      // }
-      // await this.postsService.unbanPosts(userId);
-      // const bannedLikesForComments =
-      //   await this.likesService.getBannedLikesForCommentsByUser(userId);
-      // for (const element of bannedLikesForComments) {
-      //   await this.commentsService.correctLikeAndDislikeCountersUnban(
-      //     element.idObject.toString(),
-      //     element.status,
-      //   );
-      // }
-      // await this.commentsService.unbanComments(userId);
-      // await this.likesService.unbanLikes(userId);
       return;
     }
   }

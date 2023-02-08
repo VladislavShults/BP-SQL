@@ -34,6 +34,7 @@ export type BlogDBType = {
   userId: string;
   isBanned: boolean;
   banDate: Date;
+  isMembership: boolean;
 };
 
 export type ViewBlogType = {
@@ -42,6 +43,7 @@ export type ViewBlogType = {
   description: string;
   websiteUrl: string;
   createdAt: Date;
+  isMembership: boolean;
 };
 
 export type ViewBlogByIdType = {
@@ -50,6 +52,7 @@ export type ViewBlogByIdType = {
   description: string;
   websiteUrl: string;
   createdAt: Date;
+  isMembership: boolean;
 };
 
 export type ViewBlogsTypeWithPagination = {

@@ -174,12 +174,6 @@ export class UsersQueryRepository {
     };
   }
 
-  async getUserByLogin(login: string): Promise<UserDBType | null> {
-    const user = await this.userModel.findOne({ login: login }).lean();
-    if (!user) return null;
-    return user;
-  }
-
   async getUserByIdJoinBanInfoType(
     userId: number,
   ): Promise<ViewUserType | null> {

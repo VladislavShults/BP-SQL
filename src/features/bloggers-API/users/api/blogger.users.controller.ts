@@ -40,9 +40,10 @@ export class BloggerUsersController {
     const user = await this.usersService.findUserById(params.userId);
     if (!user) throw new HttpException('user not found', HttpStatus.NOT_FOUND);
 
-    const blog = await this.blogsQueryRepository.findBlogByIdWithUserId(
-      inputModel.blogId,
-    );
+    const blog =
+      await this.blogsQueryRepository.findBlogByIdReturnBlogWithUserId(
+        inputModel.blogId,
+      );
 
     if (!blog) throw new HttpException('blog not found', HttpStatus.NOT_FOUND);
 
@@ -55,14 +56,15 @@ export class BloggerUsersController {
 
   @Get('blog/:blogId')
   @UseGuards(JwtAuthGuard)
-  async getAllPostsByBlogId(
+  async getAllBannedUsersByBlogId(
     @Param() params: URIParamBlogDto,
     @Query() query: QueryBannedUsersDto,
     @Request() req,
   ): Promise<ViewBannedUsersForBlogWithPaginationType> {
-    const blog = await this.blogsQueryRepository.findBlogByIdWithUserId(
-      params.blogId,
-    );
+    const blog =
+      await this.blogsQueryRepository.findBlogByIdReturnBlogWithUserId(
+        params.blogId,
+      );
 
     if (!blog) throw new HttpException('blog not found', HttpStatus.NOT_FOUND);
 

@@ -20,9 +20,10 @@ export class CheckBlogInDBAndBlogOwnerGuard implements CanActivate {
 
     const userId = user.id.toString();
 
-    const blog = await this.blogsQueryRepository.findBlogByIdWithUserId(
-      request.params.blogId,
-    );
+    const blog =
+      await this.blogsQueryRepository.findBlogByIdReturnBlogWithUserId(
+        request.params.blogId,
+      );
 
     if (!blog) throw new HttpException('Blog not found', HttpStatus.NOT_FOUND);
 
