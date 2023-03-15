@@ -111,18 +111,15 @@ export class BlogsQueryRepository {
     try {
       bannedUsersDBType = await this.dataSource.query(
         `
-      SELECT b."UserId" as "userId", u."Login" as "login", "IsBanned" as "isBanned", "BanDate" as "banDate",
+      SELECT b."UserId" as "userId", u."Login" as "login", b."IsBanned" as "isBanned", "BanDate" as "banDate",
             "BanReason" as "banReason", "BlogId" as "blogId"
       FROM public."BannedUsersForBlog" b
       JOIN public."Users" u
       ON b."UserId" = u."UserId"
-      WHERE b."BlogId" = $1 AND LOWER ("Login") LIKE '%%'
+      WHERE b."BlogId" = $1
       ORDER BY ${'"' + sortBy + '"'} ${sortDirection}
       LIMIT ${pageSize} OFFSET ${(pageNumber - 1) * pageSize};`,
-        [
-          blogId,
-          // '%' + searchLoginTerm.toLocaleLowerCase() + '%'
-        ],
+        [blogId],
       );
     } catch (error) {
       bannedUsersDBType = [];
