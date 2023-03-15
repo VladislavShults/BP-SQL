@@ -157,9 +157,20 @@ export class CommentsQueryRepository {
         [userId],
       );
 
-    const bannedId = idsBannedUsersForBlogsThisUser.map((i) => {
+    const bannedIdsArray = idsBannedUsersForBlogsThisUser.map((i) => {
       return i.id;
     });
+
+    const bannedIds = bannedIdsArray.join();
+
+    let stringNotIn = '';
+
+    let params = [userId];
+
+    if (bannedIdsArray.length !== 0) {
+      stringNotIn = 'AND c."UserId" NOT IN ($2)';
+      params = [userId, bannedIds];
+    }
 
     const itemsDBType = await this.dataSource.query(
       `
@@ -174,10 +185,10 @@ export class CommentsQueryRepository {
     JOIN public."Blogs" b
     ON p."BlogId" = b."BlogId"
     WHERE c."IsBanned" = false AND c."IsDeleted" = false AND b."UserId" = $1
-    AND c."UserId" NOT IN (${bannedId})
+    ${stringNotIn}
     ORDER BY ${'"' + sortBy + '"'} ${sortDirection}
     LIMIT ${pageSize} OFFSET ${(pageNumber - 1) * pageSize}`,
-      [userId],
+      params,
     );
 
     if (itemsDBType.length === 0) return null;
@@ -197,8 +208,8 @@ export class CommentsQueryRepository {
     JOIN public."Blogs" b
     ON p."BlogId" = b."BlogId"
     WHERE c."IsBanned" = false AND c."IsDeleted" = false AND b."UserId" = $1
-    AND c."UserId" NOT IN (${bannedId})`,
-      [userId],
+    ${stringNotIn}`,
+      params,
     );
 
     return {
