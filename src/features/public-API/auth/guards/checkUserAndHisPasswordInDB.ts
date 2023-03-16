@@ -5,12 +5,7 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { Inject } from '@nestjs/common';
-import { Model } from 'mongoose';
-import {
-  UserDBType,
-  UsersForCheckInDB,
-} from '../../../SA-API/users/types/users.types';
+import { UsersForCheckInDB } from '../../../SA-API/users/types/users.types';
 import { Request } from 'express';
 import { AuthService } from '../application/auth.service';
 import { InjectDataSource } from '@nestjs/typeorm';

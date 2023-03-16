@@ -1,6 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { PostDBType } from '../types/posts.types';
-import { Model } from 'mongoose';
+import { Injectable } from '@nestjs/common';
 import { CreatePostBySpecificBlogDto } from '../../blogs/api/models/create-postBySpecificBlog.dto';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -8,17 +6,7 @@ import { UpdatePostByBlogIdDto } from '../../../bloggers-API/blogs/api/models/up
 
 @Injectable()
 export class PostsRepository {
-  constructor(
-    @Inject('POST_MODEL')
-    private readonly postModel: Model<PostDBType>,
-    @InjectDataSource() private readonly dataSource: DataSource,
-  ) {}
-
-  async getPostById(postId: string) {
-    const post = await this.postModel.findById(postId);
-    if (!post) return null;
-    return post;
-  }
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async deletePostByIdForBlogId(postId: string, blogId: string): Promise<void> {
     try {
@@ -32,20 +20,6 @@ export class PostsRepository {
     } catch (error) {
       return null;
     }
-  }
-
-  async banPosts(userId: string) {
-    await this.postModel.updateMany(
-      { userId: userId },
-      { $set: { isBanned: true } },
-    );
-  }
-
-  async unbanPosts(userId: string) {
-    await this.postModel.updateMany(
-      { userId: userId },
-      { $set: { isBanned: false } },
-    );
   }
 
   async banAndUnbanPostsByBlog(blogId: string, banStatus: boolean) {

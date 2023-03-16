@@ -1,7 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Model } from 'mongoose';
+import { Injectable } from '@nestjs/common';
 import {
-  UserDBType,
   UsersJoinBanInfoType,
   UsersJoinEmailConfirmationType,
   ViewUsersTypeWithPagination,
@@ -16,22 +14,7 @@ import { mapUserSQLTypeToViewType } from '../helpers/mapUserSQLTypeToViewType';
 
 @Injectable()
 export class UsersQueryRepository {
-  constructor(
-    @Inject('USER_MODEL') private readonly userModel: Model<UserDBType>,
-    @InjectDataSource() private readonly dataSource: DataSource,
-  ) {}
-
-  // async getUserByIdViewType(userId: string): Promise<ViewUserType | null> {
-  //   const userDBType = await this.userModel.findById(userId);
-  //   if (!userDBType) return null;
-  //   return mapUserDBTypeToViewType(userDBType);
-  // }
-
-  async getUserByIdDBType(userId: string): Promise<UserDBType | null> {
-    const userDBType = await this.userModel.findById(userId);
-    if (!userDBType) return null;
-    return userDBType;
-  }
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async getUsers(query: QueryUserDto): Promise<ViewUsersTypeWithPagination> {
     const banStatus: string = query.banStatus || 'all';

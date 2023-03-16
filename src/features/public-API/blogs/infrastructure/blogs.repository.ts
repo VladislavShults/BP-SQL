@@ -54,13 +54,6 @@ export class BlogsRepository {
     );
   }
 
-  // async deleteUserIdFromBannedUsersInBlog(blogId: string, userId: string) {
-  //   await this.blogModel.updateOne(
-  //     { _id: blogId },
-  //     { $pull: { bannedUsers: userId } },
-  //   );
-  // }
-
   async updateBlog(blogId: string, updateBlogDTO: UpdateBlogDto) {
     await this.dataSource.query(
       `

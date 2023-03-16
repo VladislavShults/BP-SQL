@@ -1,14 +1,5 @@
 import { LikeType } from '../../likes/types/likes.types';
 
-export type CommentDBType = {
-  id: number;
-  content: string;
-  userId: string;
-  createdAt: Date;
-  postId: string;
-  isBanned: boolean;
-};
-
 export type LikesInfoType = {
   likesCount: number;
   dislikesCount: number;

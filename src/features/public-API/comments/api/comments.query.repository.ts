@@ -1,31 +1,19 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Model } from 'mongoose';
+import { Injectable } from '@nestjs/common';
 import {
-  CommentDBType,
   ViewAllCommentsForAllPostsWithPaginationType,
   ViewCommentsTypeWithPagination,
   ViewCommentType,
 } from '../types/comments.types';
 import { mapComment } from '../helpers/mapCommentDBTypeToViewModel';
 import { QueryPostDto } from '../../posts/api/models/query-post.dto';
-import { LikeDBType } from '../../likes/types/likes.types';
 import { mapCommentDBTypeToAllCommentForAllPosts } from '../helpers/mapCommentDBTypeToAllCommentForAllPosts';
 import { QueryCommentDto } from './models/query-comment.dto';
-import { BannedUsersForBlogDBType } from '../../blogs/types/blogs.types';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 @Injectable()
 export class CommentsQueryRepository {
-  constructor(
-    @Inject('COMMENT_MODEL')
-    private readonly commentModel: Model<CommentDBType>,
-    @Inject('LIKES_MODEL')
-    private readonly likesModel: Model<LikeDBType>,
-    @Inject('BANNED_USER_FOR_BLOG_MODEL')
-    private readonly bannedUserForBlogModel: Model<BannedUsersForBlogDBType>,
-    @InjectDataSource() private readonly dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async getCommentById(
     commentId: string,

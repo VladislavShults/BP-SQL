@@ -19,13 +19,6 @@ export class TestingController {
     await this.dataSource.query(`DELETE FROM public."Blogs"`);
     await this.dataSource.query(`DELETE FROM public."Users"`);
 
-    // await this.blogModel.deleteMany({});
-    // await this.postModel.deleteMany({});
-    // await this.commentModel.deleteMany({});
-    // await this.userModel.deleteMany({});
-    // await this.devicesSecurityModel.deleteMany({});
-    // await this.likesModel.deleteMany({});
-    // await this.bannedUserForBlogModel.deleteMany({});
     return;
   }
 }

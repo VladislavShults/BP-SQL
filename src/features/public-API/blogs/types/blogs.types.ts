@@ -1,11 +1,3 @@
-export type BlogDBTypeWithoutBlogOwner = {
-  id: number;
-  name: string;
-  description: string;
-  websiteUrl: string;
-  createdAt: Date;
-};
-
 export type BannedUsersForBlogDBType = {
   userId: string;
   login: string;

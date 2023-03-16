@@ -1,8 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Model } from 'mongoose';
+import { Injectable } from '@nestjs/common';
 import {
   EmailConfirmationType,
-  UserDBType,
   UserForTypeOrmType,
   UsersJoinEmailConfirmationType,
 } from '../types/users.types';
@@ -11,10 +9,7 @@ import { DataSource } from 'typeorm';
 
 @Injectable()
 export class UsersRepository {
-  constructor(
-    @Inject('USER_MODEL') private readonly userModel: Model<UserDBType>,
-    @InjectDataSource() private readonly dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async deleteUserById(userId: string): Promise<boolean> {
     await this.dataSource.query(
@@ -41,11 +36,6 @@ export class UsersRepository {
     } catch (error) {
       return null;
     }
-  }
-
-  async updateUser(user): Promise<boolean> {
-    const update = await user.save();
-    return update.modifiedPaths.length > 0;
   }
 
   async findAccountByConfirmationCode(code: string) {
@@ -134,9 +124,9 @@ export class UsersRepository {
   ): Promise<number> {
     const result = await this.dataSource.query(
       `INSERT INTO public."EmailConfirmation"(
-"ConfirmationCode", "ExpirationDate", "IsConfirmed", "UserId")
-VALUES ($1, $2, $3, $4)
-RETURNING "EmailConfirmationId";`,
+            "ConfirmationCode", "ExpirationDate", "IsConfirmed", "UserId")
+        VALUES ($1, $2, $3, $4)
+        RETURNING "EmailConfirmationId";`,
       [
         emailConfirmation.confirmationCode,
         emailConfirmation.expirationDate,
@@ -151,9 +141,9 @@ RETURNING "EmailConfirmationId";`,
     const result = await this.dataSource.query(
       `
     INSERT INTO public."Users"(
-"Login", "Email", "PasswordHash")
-VALUES ($1, $2, $3)
-RETURNING "UserId";
+            "Login", "Email", "PasswordHash")
+    VALUES ($1, $2, $3)
+    RETURNING "UserId";
     `,
       [user.login, user.email, user.passwordHash],
     );

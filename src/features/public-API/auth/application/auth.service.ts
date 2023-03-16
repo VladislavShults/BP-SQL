@@ -1,11 +1,9 @@
 import { UsersRepository } from '../../../SA-API/users/infrastructure/users.repository';
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
 import { JwtService } from '../../../../infrastructure/JWT-utility/jwt-service';
 import * as bcrypt from 'bcrypt';
 import { add } from 'date-fns';
-import { Model } from 'mongoose';
-import { DevicesSecuritySessionType } from '../../devices/types/devices.types';
 import { DevicesService } from '../../devices/application/devices.service';
 
 @Injectable()
@@ -14,8 +12,6 @@ export class AuthService {
     private readonly usersRepository: UsersRepository,
     private readonly jwtUtility: JwtService,
     private readonly devicesService: DevicesService,
-    @Inject('DEVICE_SECURITY_MODEL')
-    private readonly securityDevicesModel: Model<DevicesSecuritySessionType>,
   ) {}
 
   generateHash(password: string) {

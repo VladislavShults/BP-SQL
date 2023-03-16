@@ -30,7 +30,7 @@ import { CheckPostInDBGuard } from '../guards/check-post-in-DB.post';
 import { GetUserFromToken } from '../../auth/guards/getUserFromToken.guard';
 import { CreateCommentDto } from '../../comments/api/models/create-comment.dto';
 import { LikesService } from '../../likes/application/likes.service';
-import { UserIsBannedGuard } from '../../../SA-API/users/UserIsBannedGuard';
+import { UserIsBannedGuard } from '../../../SA-API/users/guards/UserIsBannedGuard';
 
 @Controller('posts')
 export class PostsController {

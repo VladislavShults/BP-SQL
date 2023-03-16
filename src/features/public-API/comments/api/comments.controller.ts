@@ -22,7 +22,7 @@ import { CheckCommentInDB } from '../guards/check-comment-in-DB';
 import { GetUserFromToken } from '../../auth/guards/getUserFromToken.guard';
 import { CheckOwnerComment } from '../guards/check-owner-comment';
 import { LikesService } from '../../likes/application/likes.service';
-import { UserIsBannedGuard } from '../../../SA-API/users/UserIsBannedGuard';
+import { UserIsBannedGuard } from '../../../SA-API/users/guards/UserIsBannedGuard';
 
 @Controller('comments')
 export class CommentsController {
