@@ -6,11 +6,11 @@ export const mapCommentDBTypeToAllCommentForAllPosts = (
   id: comment.id.toString(),
   content: comment.content,
   createdAt: comment.createdAt,
-  // likesInfo: {
-  //   likesCount: comment.likesCount,
-  //   dislikesCount: comment.dislikesCount,
-  //   myStatus: 'None',
-  // },
+  likesInfo: {
+    likesCount: comment.likesCount,
+    dislikesCount: comment.dislikesCount,
+    myStatus: comment.myStatus || 'None',
+  },
   commentatorInfo: {
     userId: comment.userId.toString(),
     userLogin: comment.userLogin,

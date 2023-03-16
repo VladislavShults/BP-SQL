@@ -39,7 +39,7 @@ export type AllCommentsForAllPostType = {
     userLogin: string;
   };
   createdAt: Date;
-  // likesInfo: LikesInfoType;
+  likesInfo: LikesInfoType;
   postInfo: {
     id: string;
     title: string;

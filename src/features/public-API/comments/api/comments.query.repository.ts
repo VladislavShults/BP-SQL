@@ -176,7 +176,17 @@ export class CommentsQueryRepository {
       `
     SELECT c."CommentId" as "id", c."Content" as "content", c."UserId" as "userId", u."Login" as "userLogin",
            c."CreatedAt" as "createdAt", c."PostId" as "postId", p."Title" as "title", p."BlogId" as "blogId",
-           b."BlogName" as "blogName"
+           b."BlogName" as "blogName",
+           (SELECT COUNT(*)
+                 FROM public."CommentsLikesOrDislike" cl
+                 WHERE "Status" = 'Like' AND cl."CommentId" = c."CommentId") as "likesCount",
+           (SELECT COUNT(*)
+                 FROM public."CommentsLikesOrDislike" cl
+                 WHERE "Status" = 'Dislike' AND cl."CommentId" = c."CommentId") as "dislikesCount",
+           (SELECT "Status" as "myStatus" 
+                 FROM public."CommentsLikesOrDislike" cl 
+                 WHERE cl."CommentId" = c."CommentId" 
+                 AND "UserId" = $1) as "myStatus"
     FROM public."Comments" c
     JOIN public."Users" u
     ON c."UserId" = u."UserId"
