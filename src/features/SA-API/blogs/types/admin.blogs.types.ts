@@ -14,6 +14,10 @@ export type ViewBlogWithUserOwnerType = {
   };
 };
 
+export type IsMemberShip = {
+  isMemberShip: boolean;
+};
+
 export type ViewBlogsTypeWithUserOwnerPagination = {
   pagesCount: number;
   page: number;
