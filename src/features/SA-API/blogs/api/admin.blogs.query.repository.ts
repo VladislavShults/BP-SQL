@@ -23,7 +23,7 @@ export class AdminBlogsQueryRepository {
       await this.dataSource.query(
         `
     SELECT "BlogId" as "id", "BlogName" as "name", "Description" as "description", "WebsiteUrl" as "websiteUrl",
-            b."CreatedAt" as "createdAt", b."IsMemberShip" as "isMemberShip" u."UserId" as "userId", u."Login" as "userLogin", 
+            b."CreatedAt" as "createdAt", b."IsMembership" as "isMembership", u."UserId" as "userId", u."Login" as "userLogin", 
             b."IsBanned" as "isBanned", b."BanDate" as "banDate"
     FROM public."Blogs" b
     JOIN public. "Users" u

@@ -1,17 +1,17 @@
 import {
-  IsMemberShip,
+  IsMembership,
   ViewBlogWithUserOwnerType,
 } from '../types/admin.blogs.types';
 
 export const mapBlogUserOwner = (
   blog,
-): ViewBlogWithUserOwnerType & IsMemberShip => ({
+): ViewBlogWithUserOwnerType & IsMembership => ({
   id: blog.id.toString(),
   name: blog.name,
   description: blog.description,
   websiteUrl: blog.websiteUrl,
   createdAt: blog.createdAt,
-  isMemberShip: blog.isMemberShip,
+  isMembership: blog.isMembership,
   blogOwnerInfo: {
     userId: blog.userId,
     userLogin: blog.userLogin,
