@@ -90,8 +90,8 @@ export class UsersQueryRepository {
         FROM public."Users" u
         JOIN public."BanInfo" b
         ON u."UserId" = b."UserId"
-        WHERE LOWER ("Login") LIKE $1 AND "IsDeleted" = false AND "IsBanned" = true
-        OR (LOWER ("Email") LIKE $2 AND "IsDeleted" = false AND "IsBanned" = true)
+        WHERE LOWER ("Login") LIKE $1 AND "IsDeleted" = false AND u."IsBanned" = true
+        OR (LOWER ("Email") LIKE $2 AND "IsDeleted" = false AND u."IsBanned" = true)
         ORDER BY ${'"' + sortBy + '"'} ${sortDirection}
         LIMIT ${pageSize} OFFSET ${(pageNumber - 1) * pageSize};
       `;
@@ -105,8 +105,8 @@ export class UsersQueryRepository {
                         FROM public."Users" u
                         JOIN public."BanInfo" b
                         ON u."UserId" = b."UserId"
-                        WHERE LOWER ("Login") LIKE $1 AND "IsDeleted" = false AND "IsBanned" = true
-                        OR (LOWER ("Email") LIKE $2 AND "IsDeleted" = false AND "IsBanned" = true)`;
+                        WHERE LOWER ("Login") LIKE $1 AND "IsDeleted" = false AND u."IsBanned" = true
+                        OR (LOWER ("Email") LIKE $2 AND "IsDeleted" = false AND u."IsBanned" = true)`;
 
       const totalCountArray = await this.dataSource.query(queryCount, [
         '%' + searchLoginTerm.toLocaleLowerCase() + '%',
@@ -126,8 +126,8 @@ export class UsersQueryRepository {
         FROM public."Users" u
         JOIN public."BanInfo" b
         ON u."UserId" = b."UserId"
-        WHERE LOWER ("Login") LIKE $1 AND "IsDeleted" = false AND "IsBanned" = false
-        OR (LOWER ("Email") LIKE $2 AND "IsDeleted" = false AND "IsBanned" = false)
+        WHERE LOWER ("Login") LIKE $1 AND "IsDeleted" = false AND u."IsBanned" = false
+        OR (LOWER ("Email") LIKE $2 AND "IsDeleted" = false AND u."IsBanned" = false)
         ORDER BY ${'"' + sortBy + '"'} ${sortDirection}
         LIMIT ${pageSize} OFFSET ${(pageNumber - 1) * pageSize};
       `;
@@ -141,8 +141,8 @@ export class UsersQueryRepository {
                         FROM public."Users" u
                         JOIN public."BanInfo" b
                         ON u."UserId" = b."UserId"
-                        WHERE LOWER ("Login") LIKE $1 AND "IsDeleted" = false AND "IsBanned" = false
-                        OR (LOWER ("Email") LIKE $2 AND "IsDeleted" = false AND "IsBanned" = false)`;
+                        WHERE LOWER ("Login") LIKE $1 AND "IsDeleted" = false AND u."IsBanned" = false
+                        OR (LOWER ("Email") LIKE $2 AND "IsDeleted" = false AND u."IsBanned" = false)`;
 
       const totalCountArray = await this.dataSource.query(queryCount, [
         '%' + searchLoginTerm.toLocaleLowerCase() + '%',
